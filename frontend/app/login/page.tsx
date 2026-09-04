@@ -14,7 +14,7 @@ export default function LoginPage() {
 
     try {
       const response = await fetch(
-        "https://lomba-app-production.up.railway.app/auth/login",
+        "https://lomba-app-production.up.railway.app/api/auth/login",
         {
           method: "POST",
           headers: {
