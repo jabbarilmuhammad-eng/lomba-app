@@ -12,7 +12,7 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(
-        "https://lomba-app-production.up.railway.app",
+        "https://lomba-app-production.up.railway.app/auth/register",
         {
           method: "POST",
           headers: {
