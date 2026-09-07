@@ -1,113 +1,87 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch(
-        "https://lomba-app-production.up.railway.app/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      console.log("Status:", response.status);
-      console.log("Response:", data);
-
-      if (response.ok) {
-  alert("Register berhasil!");
-      } else {
-      alert("Register gagal!");
-      }
-      
-    } catch (error) {
-      console.error(error);
-
-      alert("Gagal menghubungi backend!");
-    }
-  };
-
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold">
-          Daftar Akun
-        </h1>
-
-        <p className="mt-2 text-gray-400">
-          Buat akun untuk mengikuti kompetisi.
-        </p>
-
-        <form
-          onSubmit={handleRegister}
-          className="mt-8 space-y-5"
+    <main className="min-h-screen px-6 py-16">
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/"
+          className="text-sm text-gray-400 transition hover:text-white"
         >
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Nama Lengkap
-            </label>
+          ← Kembali ke Beranda
+        </Link>
 
-            <input
-              type="text"
-              placeholder="Masukkan nama lengkap"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 outline-none focus:border-white"
-            />
-          </div>
+        <div className="mt-10 text-center">
+          <h1 className="text-4xl font-bold md:text-5xl">
+            Portal Pendaftaran
+          </h1>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Email
-            </label>
+          <p className="mt-4 text-gray-400">
+            Pilih jenis kompetisi yang ingin kamu ikuti.
+          </p>
+        </div>
 
-            <input
-              type="email"
-              placeholder="Masukkan email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 outline-none focus:border-white"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Password
-            </label>
-
-            <input
-              type="password"
-              placeholder="Masukkan password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 outline-none focus:border-white"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {/* SELF */}
+          <Link
+            href="/register/science/self"
+            className="rounded-2xl border border-gray-800 p-8 transition hover:border-white hover:bg-gray-900"
           >
-            Buat Akun
-          </button>
-        </form>
+            <div className="text-4xl">🧑</div>
+
+            <h2 className="mt-6 text-2xl font-bold">
+              Science Individu
+            </h2>
+
+            <p className="mt-3 text-gray-400">
+              Daftar kompetisi Science sebagai peserta individu.
+            </p>
+
+            <div className="mt-6 font-semibold">
+              Daftar Sendiri →
+            </div>
+          </Link>
+
+          {/* COLLECTIVE */}
+          <Link
+            href="/register/science/collective"
+            className="rounded-2xl border border-gray-800 p-8 transition hover:border-white hover:bg-gray-900"
+          >
+            <div className="text-4xl">👥</div>
+
+            <h2 className="mt-6 text-2xl font-bold">
+              Science Kolektif
+            </h2>
+
+            <p className="mt-3 text-gray-400">
+              Daftar beberapa peserta sekaligus untuk kompetisi Science.
+            </p>
+
+            <div className="mt-6 font-semibold">
+              Daftar Kolektif →
+            </div>
+          </Link>
+
+          {/* FUTSAL */}
+          <Link
+            href="/register/futsal"
+            className="rounded-2xl border border-gray-800 p-8 transition hover:border-white hover:bg-gray-900"
+          >
+            <div className="text-4xl">⚽</div>
+
+            <h2 className="mt-6 text-2xl font-bold">
+              Futsal Competition
+            </h2>
+
+            <p className="mt-3 text-gray-400">
+              Daftarkan tim futsal kamu untuk ARMASO 2027.
+            </p>
+
+            <div className="mt-6 font-semibold">
+              Daftar Futsal →
+            </div>
+          </Link>
+        </div>
       </div>
     </main>
   );

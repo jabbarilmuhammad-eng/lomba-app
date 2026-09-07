@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0ad768d1051fb34f9a92c35bbadfde2ebf20169d6dcc2b03702fc2d589ace4ca'>;
+  StorageHashBase<'d78f53e0fe2e12d97d84184b14bae6d7a77ec2c062b47edc0daa988dc08e5972'>;
 export type ExecutionHash =
   ExecutionHashBase<'083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805'>;
 export type ProfileHash =
@@ -262,7 +262,7 @@ export type FieldOutputTypes = {
     };
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly userId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -315,7 +315,7 @@ export type FieldInputTypes = {
     };
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly userId: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -369,7 +369,7 @@ export type StorageColumnTypes = {
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
@@ -422,7 +422,7 @@ export type StorageColumnInputTypes = {
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
@@ -849,7 +849,7 @@ type ContractBase = Omit<
             };
             readonly RegistrationType: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['SELF', 'COLLECTIVE', 'FUTSAL'];
+              readonly values: readonly ['SELF', 'SINGLE', 'COLLECTIVE', 'FUTSAL'];
             };
             readonly ScienceField: {
               readonly kind: 'valueSet';
@@ -1313,6 +1313,7 @@ type ContractBase = Omit<
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'SELF'; readonly value: 'SELF' },
+              { readonly name: 'SINGLE'; readonly value: 'SINGLE' },
               { readonly name: 'COLLECTIVE'; readonly value: 'COLLECTIVE' },
               { readonly name: 'FUTSAL'; readonly value: 'FUTSAL' },
             ];

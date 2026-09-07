@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0ad768d1051fb34f9a92c35bbadfde2ebf20169d6dcc2b03702fc2d589ace4ca'>;
+  StorageHashBase<'849a0c2b4876997410b56b37a60049265303b5681fe399a3a8ea9c20e2114657'>;
 export type ExecutionHash =
   ExecutionHashBase<'083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805'>;
 export type ProfileHash =
@@ -256,13 +256,12 @@ export type FieldOutputTypes = {
       readonly proofUrl: CodecTypes['pg/text@1']['output'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly userId: CodecTypes['pg/int4@1']['output'];
-      readonly registrationId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly userId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -309,13 +308,12 @@ export type FieldInputTypes = {
       readonly proofUrl: CodecTypes['pg/text@1']['input'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly userId: CodecTypes['pg/int4@1']['input'];
-      readonly registrationId: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly userId: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -361,7 +359,6 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly proofUrl: CodecTypes['pg/text@1']['output'];
-      readonly registrationId: CodecTypes['pg/int4@1']['output'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
@@ -369,7 +366,7 @@ export type StorageColumnTypes = {
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
@@ -414,7 +411,6 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly proofUrl: CodecTypes['pg/text@1']['input'];
-      readonly registrationId: CodecTypes['pg/int4@1']['input'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'];
@@ -422,7 +418,7 @@ export type StorageColumnInputTypes = {
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
+      readonly type: 'SELF' | 'SINGLE' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
@@ -572,11 +568,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                 };
-                readonly registrationId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -590,7 +581,7 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['registrationId'] }];
+              uniques: readonly [];
               indexes: readonly [
                 {
                   readonly name: 'payment_userId_idx_a489d58a';
@@ -609,18 +600,6 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'user';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'payment';
-                    readonly columns: readonly ['registrationId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'registration';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -849,7 +828,7 @@ type ContractBase = Omit<
             };
             readonly RegistrationType: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['SELF', 'COLLECTIVE', 'FUTSAL'];
+              readonly values: readonly ['SELF', 'SINGLE', 'COLLECTIVE', 'FUTSAL'];
             };
             readonly ScienceField: {
               readonly kind: 'valueSet';
@@ -972,10 +951,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly registrationId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -992,17 +967,6 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly registration: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Registration';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['registrationId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
@@ -1021,7 +985,6 @@ type ContractBase = Omit<
                 readonly proofUrl: { readonly column: 'proofUrl' };
                 readonly status: { readonly column: 'status' };
                 readonly userId: { readonly column: 'userId' };
-                readonly registrationId: { readonly column: 'registrationId' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
@@ -1063,17 +1026,6 @@ type ContractBase = Omit<
                   readonly model: 'Participant';
                 };
                 readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['registrationId'];
-                };
-              };
-              readonly payment: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Payment';
-                };
-                readonly cardinality: '1:1';
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['registrationId'];
@@ -1313,6 +1265,7 @@ type ContractBase = Omit<
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'SELF'; readonly value: 'SELF' },
+              { readonly name: 'SINGLE'; readonly value: 'SINGLE' },
               { readonly name: 'COLLECTIVE'; readonly value: 'COLLECTIVE' },
               { readonly name: 'FUTSAL'; readonly value: 'FUTSAL' },
             ];
