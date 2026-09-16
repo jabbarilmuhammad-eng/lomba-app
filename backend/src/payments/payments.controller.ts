@@ -1,20 +1,29 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Param,
+  Patch,
   Post,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 
-import {
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { memoryStorage } from 'multer';
-
-import { CreatePaymentDto } from './dto/create-payment.dto.js';
+import type { Request } from 'express';
 
 import { PaymentsService } from './payments.service.js';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { AdminApiGuard } from '../auth/guards/admin-api.guard.js';
+import { AuthUser } from '../auth/auth-user.interface.js';
+
+interface AuthenticatedRequest extends Request {
+  user: AuthUser;
+}
 
 @Controller('payments')
 export class PaymentsController {
@@ -23,24 +32,48 @@ export class PaymentsController {
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('proof', {
-      storage: memoryStorage(),
-
       limits: {
         fileSize: 5 * 1024 * 1024,
       },
     }),
   )
-  createPayment(
-    @Body() dto: CreatePaymentDto,
-
-    @UploadedFile()
-    file: Express.Multer.File,
+  async createPayment(
+    @UploadedFile() file: any,
+    @Body() body: any,
+    @Req() req: AuthenticatedRequest,
   ) {
+    if (!file) {
+      throw new BadRequestException(
+        'Bukti pembayaran wajib diupload',
+      );
+    }
+
     return this.paymentsService.createPayment(
-      dto,
-      file,
+      {
+        amount: Number(body.amount),
+        registrationId: Number(body.registrationId),
+        file,
+      },
+      req.user,
+    );
+  }
+
+  @Patch(':id/verify')
+  @UseGuards(AdminApiGuard)
+  verifyPayment(@Param('id') id: string) {
+    return this.paymentsService.verifyPayment(
+      Number(id),
+    );
+  }
+
+  @Patch(':id/reject')
+  @UseGuards(AdminApiGuard)
+  rejectPayment(@Param('id') id: string) {
+    return this.paymentsService.rejectPayment(
+      Number(id),
     );
   }
 }
