@@ -20,11 +20,6 @@ export class RegistrationsService {
       );
     }
 
-    if (dto.participants.length > 8) {
-      throw new BadRequestException(
-        'Maksimal 8 peserta untuk pendaftaran Science',
-      );
-    }
 
     if (
       dto.type === 'SELF' &&

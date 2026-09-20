@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const searchParams = useSearchParams();
 
   const registrationId = searchParams.get("registrationId");
@@ -153,5 +153,13 @@ export default function PaymentPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen p-8 text-center text-gray-400">Memuat...</div>}>
+      <PaymentContent />
+    </Suspense>
   );
 }
