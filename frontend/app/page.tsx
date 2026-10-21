@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
+import React, { useState, useEffect, useRef } from "react";
+import HomeNavbar from "@/components/home/HomeNavbar";
+import HomeHero from "@/components/home/HomeHero";
+// Navbar lama dipertahankan untuk halaman lain, tidak diimpor di sini
 
 const TARGET_DATE = new Date("2027-01-23T08:00:00+07:00").getTime();
 
@@ -95,6 +97,9 @@ export default function Home() {
   const [webhookModalOpen, setWebhookModalOpen] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState(DEFAULT_GAS_URL);
 
+  // Ref untuk IntersectionObserver — mengungkap elemen home-reveal
+  const revealContainerRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -123,6 +128,30 @@ export default function Home() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // IntersectionObserver — ungkap elemen home-reveal saat masuk layar
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const targets = document.querySelectorAll(".home-reveal");
+    if (!targets.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("home-revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -167,147 +196,144 @@ export default function Home() {
 
   return (
     <>
-      {/* Subtle Hieroglyphic Background Overlay */}
-      <div className="hieroglyph-backdrop" aria-hidden="true" />
+      {/* ─── Navbar & Hero — Figma Design ─── */}
+      <HomeNavbar />
+      <HomeHero />
 
+      {/* Spacer untuk konten lama di bawah hero baru */}
       <div className="main-wrapper">
-        {/* Top Navigation Bar */}
-        <Navbar />
 
-        {/* 1. HERO SECTION (CLASSIC & MAJESTIC EGYPTIAN) */}
-        <section className="hero-section" id="beranda">
-          <div className="hero-bg-wrapper">
-            <img
-              src="/assets/images/hero-pyramid.jpg"
-              alt="Piramida Klasik Megah ARMASO 2027"
-              className="hero-bg-image"
-              id="hero-img"
-            />
-            <div className="hero-overlay-gradient" />
-          </div>
-
-          <div className="container hero-content">
-            <div className="badge-egypt">
-              <i className="fa-solid fa-crown" /> Edisi Classic &amp; Majestic Egyptian
-            </div>
-
-            <h1 className="hero-title-main">
-              KEMEGAHAN ILMU &amp; SPORTIVITAS{" "}
-              <span className="hero-title-gold">ARMASO 2027</span>
-            </h1>
-
-            <p className="hero-subtitle-tagline">
-              Ar-Rahmat Mathematic, Science, Social Olympiad, and Sport Competition
-            </p>
-
-            <p className="hero-description">
-              Selamat datang di gelanggang kompetisi paling prestisius tingkat{" "}
-              <strong>SD/MI Sederajat se-Jawa Bali</strong>. Diselenggarakan dengan penuh khidmat, sakral, dan megah oleh Pondok Pesantren Modern Ar
-              Rahmat Bojonegoro guna melahirkan generasi cendekia yang berilmu tinggi, tangguh, dan berakhlak mulia.
-            </p>
-
-            {/* Action CTAs to Subpages */}
-            <div className="hero-cta-group">
-              <a
-                href="/register"
-                className="btn btn-gold btn-lg"
-                id="btn-hero-register"
-              >
-                <i className="fa-solid fa-trophy" /> Daftar Armaso 2027
-              </a>
-              <button
-                type="button"
-                className="btn btn-outline-gold btn-lg"
-                id="btn-download-guidebook-olymp"
-                onClick={() => openGuidebook("olimpiade")}
-              >
-                <i className="fa-solid fa-book-open" /> Unduh Panduan
-              </button>
-            </div>
-
-            {/* Key Event Highlights Strip */}
-            <div className="hero-highlights-strip">
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <i className="fa-solid fa-tags" />
-                </div>
-                <div>
-                  <span className="highlight-label">Biaya Pendaftaran</span>
-                  <span className="highlight-value">Olimpiade Rp 35k | Futsal Rp 150k</span>
-                </div>
-              </div>
-
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <i className="fa-solid fa-trophy" />
-                </div>
-                <div>
-                  <span className="highlight-label">Total Hadiah Pembinaan</span>
-                  <span className="highlight-value">Prize Pool Jutaan Rupiah</span>
-                </div>
-              </div>
-
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <i className="fa-solid fa-map-location-dot" />
-                </div>
-                <div>
-                  <span className="highlight-label">Jangkauan Wilayah</span>
-                  <span className="highlight-value">SD/MI se-Jawa &amp; Bali</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. COUNTDOWN TIMER SECTION */}
+        {/* 2. COUNTDOWN TIMER SECTION — Figma style */}
         <section
-          className="section"
+          ref={revealContainerRef}
+          id="hitung-mundur"
           style={{
-            padding: "3.5rem 0 2rem",
-            background: "var(--bg-darker)",
-            borderBottom: "1px solid var(--border-subtle)",
+            background: "#1c0a00",
+            padding: "3.5rem 1rem 3rem",
+            position: "relative",
           }}
         >
-          <div className="container text-center">
-            <span className="section-tag">
-              <i className="fa-regular fa-clock" /> Hitung Mundur Perhelatan
-            </span>
+          {/* Gradasi bawah → menyambung ke section berikutnya */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "64px",
+              background: "linear-gradient(to bottom, transparent, #080604)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
+            {/* Heading kecil: Poppins, emas #efbb52, tracking lebar */}
+            <p
+              className="home-reveal home-reveal-stagger-1"
+              style={{
+                fontFamily: "var(--font-home-poppins), 'Poppins', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(10px, 1.2vw, 13px)",
+                letterSpacing: "0.25em",
+                textTransform: "uppercase",
+                color: "#efbb52",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <i className="fa-regular fa-clock" style={{ marginRight: "6px" }} />
+              Hitung Mundur Perhelatan
+            </p>
+
+            {/* Judul utama: Jaro, emas #ffb206, font-normal, font-synthesis:none */}
             <h2
-              className="section-title"
-              style={{ fontSize: "2rem", marginBottom: "0.5rem" }}
+              className="home-reveal home-reveal-stagger-2"
+              style={{
+                fontFamily: "var(--font-home-jaro), 'Jaro', sans-serif",
+                fontWeight: 400,
+                fontSynthesis: "none",
+                WebkitFontSmoothing: "antialiased",
+                fontSize: "clamp(22px, 3.2vw, 46px)",
+                color: "#ffb206",
+                letterSpacing: "normal",
+                lineHeight: 1.1,
+                marginBottom: "0.6rem",
+              }}
             >
               MENUJU BABAK UTAMA ARMASO 2027
             </h2>
-            <p className="section-subtitle">
-              23 Januari 2027 • Pondok Pesantren Modern Ar Rahmat Bojonegoro
+
+            {/* Info tanggal & lokasi: Poppins 300/400 putih */}
+            <p
+              className="home-reveal home-reveal-stagger-2"
+              style={{
+                fontFamily: "var(--font-home-poppins), 'Poppins', sans-serif",
+                fontWeight: 300,
+                fontSize: "clamp(12px, 1.2vw, 15px)",
+                color: "rgba(255,255,255,0.85)",
+                marginBottom: "2.5rem",
+                letterSpacing: "0.04em",
+              }}
+            >
+              23 Januari 2027 &bull; Pondok Pesantren Modern Ar Rahmat Bojonegoro
             </p>
 
-            <div className="countdown-box">
-              <div className="countdown-unit">
-                <span className="countdown-num" id="count-days">
-                  {countdown.days}
-                </span>
-                <span className="countdown-label">Hari</span>
-              </div>
-              <div className="countdown-unit">
-                <span className="countdown-num" id="count-hours">
-                  {countdown.hours}
-                </span>
-                <span className="countdown-label">Jam</span>
-              </div>
-              <div className="countdown-unit">
-                <span className="countdown-num" id="count-mins">
-                  {countdown.minutes}
-                </span>
-                <span className="countdown-label">Menit</span>
-              </div>
-              <div className="countdown-unit">
-                <span className="countdown-num" id="count-secs">
-                  {countdown.seconds}
-                </span>
-                <span className="countdown-label">Detik</span>
-              </div>
+            {/* 4 Kotak Hitung Mundur — gaya kartu Figma */}
+            <div
+              className="home-reveal home-reveal-stagger-3"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "clamp(8px, 1.5vw, 20px)",
+                maxWidth: "640px",
+                margin: "0 auto",
+              }}
+            >
+              {[
+                { num: countdown.days,    label: "HARI",   id: "count-days" },
+                { num: countdown.hours,   label: "JAM",    id: "count-hours" },
+                { num: countdown.minutes, label: "MENIT",  id: "count-mins" },
+                { num: countdown.seconds, label: "DETIK",  id: "count-secs" },
+              ].map(({ num, label, id }) => (
+                <div
+                  key={id}
+                  style={{
+                    background: "rgba(28, 10, 0, 0.7)",
+                    border: "2px solid #efbb52",
+                    borderRadius: "16px",
+                    padding: "clamp(12px, 2vw, 24px) clamp(8px, 1.5vw, 16px)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <span
+                    id={id}
+                    style={{
+                      fontFamily: "var(--font-home-poppins), 'Poppins', sans-serif",
+                      fontWeight: 700,
+                      fontSize: "clamp(28px, 4.5vw, 60px)",
+                      color: "#ffb206",
+                      lineHeight: 1,
+                      display: "block",
+                    }}
+                  >
+                    {num}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-home-poppins), 'Poppins', sans-serif",
+                      fontWeight: 400,
+                      fontSize: "clamp(9px, 1vw, 12px)",
+                      color: "rgba(255,255,255,0.7)",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
