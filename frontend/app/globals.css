@@ -211,3 +211,55 @@ body {
     transform: none;
   }
 }
+
+
+/* ─── HOME HERO ADDITIONS (Tahap 1, rev 2) ─── */
+
+/*
+  Animasi fade-up versi aman: HANYA menggunakan opacity + translateY.
+  Tidak ada translateX agar tidak mengganggu pemusatan wrapper statis.
+*/
+@keyframes home-hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  Glow halus: satu lapis drop-shadow, berdenyut dari redup ke sedang.
+  Tidak bertumpuk banyak layer agar tidak menutupi latar.
+*/
+@keyframes home-img-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(255, 178, 6, 0.30));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(255, 178, 6, 0.55));
+  }
+}
+
+/*
+  .home-hero-title-img — animasi HANYA pada elemen anak gambar.
+  Fase 1 (0–700ms): fade-up (opacity + translateY kecil).
+  Fase 2 (700ms+): glow berdenyut selamanya.
+  Wrapper luarnya TIDAK dianimasikan, tidak bergerak lateral.
+*/
+.home-hero-title-img {
+  opacity: 0;
+  animation:
+    home-hero-fade-up 700ms ease-out forwards,
+    home-img-glow-pulse 3s ease-in-out 700ms infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-title-img {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}

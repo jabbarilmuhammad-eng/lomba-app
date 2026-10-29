@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: "Home", href: "#beranda" },
   { label: "Olympiad", href: "#lomba" },
   { label: "Futsal Competition", href: "#lomba" },
-  { label: "About Us", href: "#tentang-penyelenggara" },
+  { label: "About Us", href: "#about" },
   { label: "Contact", href: "#kontak" },
 ];
 
@@ -70,17 +70,19 @@ export default function HomeNavbar() {
   };
 
   return (
-    // ❌ TIDAK sticky — navbar ikut ter-scroll seperti di Figma
+    // TIDAK sticky — navbar ikut ter-scroll seperti di Figma
     <header
       ref={navContainerRef}
-      className="relative left-0 right-0 z-50 bg-black w-full h-16 md:h-20"
+      className="bg-black w-full"
+      style={{ height: "clamp(64px, 5vw, 80px)" }}
       id="home-navbar"
     >
-      {/* ─── Navbar Container (Simetris & Terpusat) ─── */}
       {/*
-          Logo dan nav links berada di DALAM container yang sama.
-          px-4/px-6/px-10 berlaku untuk keduanya → jarak logo dari kiri
-          sama persis dengan jarak "Contact" dari kanan.
+        ── Container simetris ──
+        Logo (kiri) dan nav links (kanan) berada di dalam SATU div ini.
+        px-4/px-6/px-10 = padding sama di kiri dan kanan →
+        jarak logo dari tepi kiri = jarak "Contact" dari tepi kanan.
+        max-w-7xl = 1280px, di-tengah dengan mx-auto.
       */}
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10 flex items-center justify-between h-full">
 
@@ -88,23 +90,23 @@ export default function HomeNavbar() {
         <Link
           href="#beranda"
           onClick={(e) => handleNavClick(e, "#beranda")}
-          className="flex items-center gap-3 shrink-0"
+          className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0"
           aria-label="ARMASO 2027 – Beranda"
         >
           {/*
-              Lebar tampil: ~150px desktop, ~110px HP.
-              Gunakan w-[110px] md:w-[150px] + h-auto object-contain shrink-0.
+            Lebar tampil: 110px HP, 150px desktop — max-w mencegah overflow.
+            object-contain + shrink-0 memastikan tidak melar keluar container.
           */}
           <Image
             src="/images/home/logo-armaso.png"
             alt="Logo Sayap ARMASO"
             width={150}
             height={60}
-            className="w-[110px] md:w-[150px] h-auto object-contain shrink-0"
+            className="w-[110px] md:w-[150px] max-w-[150px] h-auto object-contain shrink-0 block"
             priority
           />
           <span
-            className="font-poppins font-bold text-base md:text-xl tracking-normal whitespace-nowrap select-none"
+            className="font-poppins font-bold text-sm md:text-xl tracking-normal whitespace-nowrap select-none"
             style={{ color: "#eba037" }}
           >
             ARMASO 2027
