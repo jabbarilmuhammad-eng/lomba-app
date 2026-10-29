@@ -1,10 +1,11 @@
-// HomeCompetition.tsx — Section "Our Competition" (Tahap 3)
-// Dua kartu gambar ARMASO SCIENCE dan ARMASO SPORT sebagai next/link ke /register/
-// Prop status: "buka" | "ditutup" — disiapkan tapi BELUM diaktifkan (semua "buka").
-// Hover: home-card (naik + glow emas). focus-visible: ring emas.
-// Latar: lomba-bg.svg, gradasi #531901 (atas) ke peach/cream (bawah).
-// Matahari oranye di antara dua kartu di desktop.
-// HP: kartu bertumpuk 1 kolom.
+// HomeCompetition.tsx — Section "Our Competition" (Batch A rev2)
+// Sesuai NOTES.md:
+// - Judul Jaro 68px (clamp 36-68px) emas shadow hitam.
+// - Sub-judul Jaro 38px (clamp 18-38px) putih shadow hitam.
+// - Kartu HANYA GAMBAR (tanpa latar atau border kotak).
+// - Hover/focus-visible: translateY(-8px) + drop-shadow emas mengikuti bentuk pilar.
+// - Sambungan dari About ke Our Competition: gradasi halus dari #531901 ke peach #ffc8af.
+// - Matahari oranye di tengah antar kartu di desktop. HP: bertumpuk.
 
 import Image from "next/image";
 import Link from "next/link";
@@ -12,55 +13,42 @@ import Link from "next/link";
 type CompetitionStatus = "buka" | "ditutup";
 
 interface CompetitionCardProps {
-  title: string;       // "ARMASO SCIENCE" | "ARMASO SPORT"
-  subtitle: string;    // "SCIENCE" | "SPORT"
   imageSrc: string;
   imageAlt: string;
   href: string;
   ariaLabel: string;
-  status: CompetitionStatus; // disiapkan, belum diaktifkan
+  status: CompetitionStatus;
 }
 
-function CompetitionCard({
-  title, subtitle, imageSrc, imageAlt, href, ariaLabel, status
-}: CompetitionCardProps) {
-  // Badge "Pendaftaran Ditutup" — disiapkan tapi status selalu "buka" saat ini
+function CompetitionCard({ imageSrc, imageAlt, href, ariaLabel, status }: CompetitionCardProps) {
   const isClosed = status === "ditutup";
 
-  const cardContent = (
-    <div className="relative flex flex-col items-center">
-      {/* Badge ditutup — belum aktif */}
+  const cardMedia = (
+    <div className="relative group transition-all duration-300 ease-out hover:-translate-y-2 focus-within:-translate-y-2">
       {isClosed && (
-        <div
-          className="absolute top-2 left-1/2 -translate-x-1/2 z-10 rounded-full px-4 py-1
-                     font-poppins font-bold text-sm text-white"
-          style={{ background: "#842200", border: "1px solid #ff6d00" }}
-        >
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-[#842200] border border-[#ff6d00] rounded-full px-4 py-1 font-poppins font-bold text-xs text-white whitespace-nowrap shadow-lg">
           Pendaftaran Ditutup
         </div>
       )}
-
-      {/* Gambar kartu pilar Mesir */}
       <Image
         src={imageSrc}
         alt={imageAlt}
-        width={420}
-        height={600}
-        className="w-full h-auto object-contain"
-        style={{ filter: isClosed ? "grayscale(0.6) brightness(0.7)" : "none" }}
+        width={414}
+        height={565}
+        className={`w-full h-auto object-contain transition-[filter] duration-300 group-hover:drop-shadow-[0_0_22px_rgba(255,178,6,0.85)] group-focus:drop-shadow-[0_0_22px_rgba(255,178,6,0.85)] ${isClosed ? "grayscale-[0.6] brightness-75" : ""
+          }`}
+        priority
       />
     </div>
   );
 
   if (isClosed) {
-    // Saat ditutup: tampilkan sebagai div, bukan link
     return (
       <div
-        className="home-card cursor-not-allowed opacity-70 rounded-2xl overflow-hidden"
+        className="block w-[min(88vw,320px)] md:w-[min(27vw,414px)] shrink-0 cursor-not-allowed select-none"
         aria-label={`${ariaLabel} — Pendaftaran ditutup`}
-        style={{ border: "2px solid #efbb52" }}
       >
-        {cardContent}
+        {cardMedia}
       </div>
     );
   }
@@ -69,11 +57,9 @@ function CompetitionCard({
     <Link
       href={href}
       aria-label={ariaLabel}
-      className="home-card block rounded-2xl overflow-hidden focus-visible:outline-none
-                 focus-visible:ring-4 focus-visible:ring-[#ffb206]/80"
-      style={{ border: "2px solid #efbb52" }}
+      className="block w-[min(88vw,320px)] md:w-[min(27vw,414px)] shrink-0 focus-visible:outline-none select-none"
     >
-      {cardContent}
+      {cardMedia}
     </Link>
   );
 }
@@ -82,15 +68,13 @@ export default function HomeCompetition() {
   return (
     <section
       id="kompetisi"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden px-4 pb-20 md:pb-28"
       style={{
-        // Gradasi cokelat #531901 (atas) ke peach cream (bawah) sesuai Figma
-        background: "linear-gradient(to bottom, #531901 0%, #842200 20%, #c68e76 65%, #ffc8af 100%)",
-        padding: "0 1rem 5rem",
+        background: "linear-gradient(to bottom, #531901 0%, #7a2800 15%, #c68e76 55%, #ffc8af 100%)",
       }}
     >
-      {/* Latar lomba-bg.svg — dekorasi siluet istana + piramida */}
-      <div className="absolute inset-0 pointer-events-none select-none" style={{ zIndex: 0 }}>
+      {/* Background decoration: siluet istana + piramida */}
+      <div className="absolute inset-0 pointer-events-none select-none z-0">
         <Image
           src="/images/home/lomba-bg.svg"
           alt=""
@@ -100,102 +84,50 @@ export default function HomeCompetition() {
         />
       </div>
 
-      {/* Konten */}
-      <div className="relative mx-auto w-full max-w-6xl px-0" style={{ zIndex: 1 }}>
-
+      <div className="relative z-10 w-full max-w-[1532px] mx-auto flex flex-col items-center">
         {/* Judul & sub-judul */}
-        <div className="text-center pt-16 pb-10 home-reveal">
-          <h2
-            className="font-jaro font-normal [font-synthesis:none] leading-none"
-            style={{
-              fontFamily: "var(--font-home-jaro),'Jaro',sans-serif",
-              fontWeight: 400,
-              fontSize: "clamp(40px, 6vw, 90px)",
-              color: "#ffb206",
-              textShadow: "0 5px 10px #000",
-            }}
-          >
+        <div className="text-center pt-12 md:pt-24 pb-8 md:pb-14 home-reveal">
+          <h2 className="font-jaro font-normal tracking-normal [font-synthesis:none] text-[clamp(36px,4.4vw,68px)] text-[#ffb206] drop-shadow-[0_5px_10px_#000] leading-none m-0">
             OUR COMPETITION
           </h2>
-          <p
-            className="font-jaro font-normal [font-synthesis:none] mt-2"
-            style={{
-              fontFamily: "var(--font-home-jaro),'Jaro',sans-serif",
-              fontWeight: 400,
-              fontSize: "clamp(18px, 2.5vw, 40px)",
-              color: "#ffffff",
-              textShadow: "0 2px 6px rgba(0,0,0,0.7)",
-            }}
-          >
+          <p className="font-jaro font-normal tracking-normal [font-synthesis:none] text-[clamp(18px,2.5vw,38px)] text-white drop-shadow-[0_3px_10px_#000] mt-3 md:mt-4 leading-none m-0">
             CHOOSE YOUR ARENA, PROVE YOUR BRILLIANCE
           </p>
         </div>
 
-        {/*
-          Dua kartu + matahari oranye di tengah (desktop).
-          HP: bertumpuk, matahari tersembunyi.
-          Gunakan CSS grid 3 kolom di desktop: [kartu] [matahari] [kartu]
-        */}
-        <div className="home-reveal home-reveal-stagger-2">
-          {/* Desktop: grid 3 kolom dengan matahari */}
-          <div className="hidden md:grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr", gap: "clamp(16px,3vw,48px)" }}>
-            <CompetitionCard
-              title="ARMASO SCIENCE"
-              subtitle="SCIENCE"
-              imageSrc="/images/home/science-card.png"
-              imageAlt="Kartu ARMASO Science — obelisk dan globe Mesir"
-              href="/register/olimpiade"
-              ariaLabel="Daftar ARMASO Science"
-              status="buka"
-            />
 
-            {/* Matahari oranye di tengah */}
-            <div
-              className="shrink-0 rounded-full"
-              style={{
-                width: "clamp(48px,5vw,90px)",
-                height: "clamp(48px,5vw,90px)",
-                background: "radial-gradient(circle, #ff9c00 0%, #ff6d00 55%, transparent 80%)",
-                boxShadow: "0 0 40px 16px rgba(255,109,0,0.45), 0 0 80px 24px rgba(255,109,0,0.2)",
-              }}
-              aria-hidden="true"
-            />
 
-            <CompetitionCard
-              title="ARMASO SPORT"
-              subtitle="SPORT"
-              imageSrc="/images/home/sport-card.png"
-              imageAlt="Kartu ARMASO Sport — piala emas Mesir"
-              href="/register/futsal"
-              ariaLabel="Daftar ARMASO Sport"
-              status="buka"
-            />
-          </div>
+        {/* Kartu: Desktop (row + matahari), HP (kolom bertumpuk) */}
+        <div className="w-full flex flex-col md:flex-row items-center justify-center gap-8 md:gap-[clamp(32px,8vw,120px)] home-reveal home-reveal-stagger-2">
+          {/* Kartu Science */}
+          <CompetitionCard
+            imageSrc="/images/home/science-card.png"
+            imageAlt="Kartu ARMASO Science"
+            href="/register/olimpiade"
+            ariaLabel="Daftar ARMASO Science"
+            status="buka"
+          />
 
-          {/* HP: bertumpuk, tanpa matahari tengah */}
-          <div className="md:hidden flex flex-col items-center gap-8">
-            <CompetitionCard
-              title="ARMASO SCIENCE"
-              subtitle="SCIENCE"
-              imageSrc="/images/home/science-card.png"
-              imageAlt="Kartu ARMASO Science — obelisk dan globe Mesir"
-              href="/register/olimpiade"
-              ariaLabel="Daftar ARMASO Science"
-              status="buka"
-            />
-            <CompetitionCard
-              title="ARMASO SPORT"
-              subtitle="SPORT"
-              imageSrc="/images/home/sport-card.png"
-              imageAlt="Kartu ARMASO Sport — piala emas Mesir"
-              href="/register/futsal"
-              ariaLabel="Daftar ARMASO Sport"
-              status="buka"
-            />
-          </div>
+          {/* Matahari oranye di tengah (hanya desktop) */}
+          <div
+            className="hidden md:block w-[clamp(48px,5.8vw,90px)] h-[clamp(48px,5.8vw,90px)] shrink-0 rounded-full"
+            style={{
+              background: "radial-gradient(circle, #ffb206 0%, #ff6d00 45%, rgba(255,109,0,0.2) 75%, transparent 100%)",
+              boxShadow: "0 0 60px 20px rgba(255,109,0,0.5), 0 0 120px 40px rgba(255,109,0,0.2)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Kartu Sport */}
+          <CompetitionCard
+            imageSrc="/images/home/sport-card.png"
+            imageAlt="Kartu ARMASO Sport"
+            href="/register/futsal"
+            ariaLabel="Daftar ARMASO Sport"
+            status="buka"
+          />
         </div>
       </div>
     </section>
   );
 }
-

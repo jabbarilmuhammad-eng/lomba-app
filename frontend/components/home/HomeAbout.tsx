@@ -1,11 +1,13 @@
-// HomeAbout.tsx — Section "About" (Tahap 2)
-// Kontainer besar (rounded, border emas, latar cokelat transparan) berisi:
-//   a) Banner "ARMASO 2027" (Jaro emas, glow)
-//   b) Kartu kiri "About ARMASO" (ikon fa-atom — TODO ganti aset saat tersedia)
-//   c) Kartu kanan atas "What's new!?!" (ikon fa-eye — TODO ganti aset saat tersedia)
-//   d) Kartu kanan bawah "Kompetisi" (Sains | Sport)
-// Teks justify di desktop, rata kiri di HP.
-// Latar: about-bg.svg, gradasi penyambung dari #2a0d00 (atas) ke latar cokelat.
+// HomeAbout.tsx — Section "About" (Batch A rev2)
+// Sesuai NOTES.md:
+// - Kontainer max-w-[1100px] (72%), padding 56px (clamp 24-56px), radius 31px, border 3px #efbb52, bg #1c0a00/70.
+// - Banner "ARMASO 2027": Jaro 55px (clamp 32-55px), radius 20px, border 2px #efbb52.
+// - 2 kolom: kiri (About ARMASO), kanan (What's new + Kompetisi), gap 20px.
+// - Kartu: padding 22px, border 2px #efbb52, radius 20px, bg #1c0a00/85.
+// - Judul kartu: Jaro 30px dengan ikon bulat 48px di kiri judul, DI DALAM padding kartu.
+// - Isi: Poppins 600, 14px, warna #f5e6c8, justify di desktop, rata kiri di HP, gap antar paragraf 27px.
+// - Ikon What's new: emoji 👀 dalam lingkaran #842200 border 1px emas.
+// - Ikon About: fa-atom dalam lingkaran gradasi #842200-#531901 border 1px emas (TODO: ganti aset saat tersedia).
 
 import Image from "next/image";
 
@@ -13,186 +15,119 @@ export default function HomeAbout() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden px-4 py-12 md:py-16 flex justify-center"
       style={{
-        background: "linear-gradient(to bottom, #2a0d00 0%, #3d1200 60%, #531901 100%)",
-        padding: "0 1rem 4rem",
+        background: "linear-gradient(to bottom, #2a0d00 0%, #321005 25%, #3a1100 55%, #531901 100%)",
       }}
     >
-      {/* Latar about-bg.svg — sebagai dekorasi samping */}
-      <div className="absolute inset-0 pointer-events-none select-none" style={{ zIndex: 0 }}>
+      {/* Background decoration */}
+      <div className="absolute inset-0 pointer-events-none select-none opacity-35 z-0">
         <Image
           src="/images/home/about-bg.svg"
           alt=""
           fill
-          className="object-cover object-center opacity-40"
+          className="object-cover object-center"
           sizes="100vw"
         />
       </div>
 
-      {/* Konten utama */}
-      <div className="relative mx-auto w-full max-w-6xl px-0" style={{ zIndex: 1 }}>
+      {/* Kontainer utama terpusat */}
+      <div className="relative z-10 w-full max-w-[1100px] mx-auto bg-[#1c0a00]/70 border-[3px] border-[#efbb52] rounded-[31px] p-[clamp(24px,3.6vw,56px)] flex flex-col gap-5 home-reveal shadow-2xl">
+        {/* a) Banner "ARMASO 2027" */}
+        <div className="w-full bg-[#1c0a00]/85 border-2 border-[#efbb52] rounded-[20px] py-[clamp(18px,3.1vw,40px)] px-6 text-center home-reveal">
+          <h2 className="font-jaro font-normal tracking-normal [font-synthesis:none] text-[clamp(32px,3.6vw,55px)] text-[#ffb206] leading-none m-0 drop-shadow-[0_0_24px_rgba(255,178,6,0.35)]">
+            ARMASO 2027
+          </h2>
+        </div>
 
-        {/* ── Kontainer besar ── */}
-        <div
-          className="home-reveal rounded-[28px] p-4 md:p-6"
-          style={{
-            background: "rgba(28, 10, 0, 0.75)",
-            border: "2px solid #efbb52",
-          }}
-        >
-          {/* a) Banner ARMASO 2027 */}
-          <div
-            className="home-reveal rounded-[20px] mb-5 flex items-center justify-center py-5 px-4"
-            style={{
-              background: "rgba(28, 10, 0, 0.85)",
-              border: "2px solid #efbb52",
-            }}
-          >
-            <h2
-              className="font-jaro font-normal tracking-normal [font-synthesis:none] text-center leading-none"
-              style={{
-                fontFamily: "var(--font-home-jaro), 'Jaro', sans-serif",
-                fontWeight: 400,
-                fontSize: "clamp(36px, 6vw, 88px)",
-                color: "#ffb206",
-                textShadow: "0 0 30px rgba(255,178,6,0.4)",
-              }}
-            >
-              ARMASO 2027
-            </h2>
-          </div>
-
-          {/* b–d) Grid kartu */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            {/* b) About ARMASO — kartu kiri (tall, span 1 row atau flex) */}
-            <div
-              className="home-reveal home-reveal-stagger-1 rounded-[20px] p-5 flex flex-col"
-              style={{ background: "rgba(28, 10, 0, 0.85)", border: "2px solid #efbb52" }}
-            >
-              {/* Header kartu */}
-              <div className="flex items-center gap-3 mb-4">
-                {/* TODO: ganti fa-atom dengan aset ikon atom dari Figma saat tersedia */}
-                <div
-                  className="flex items-center justify-center rounded-full shrink-0"
-                  style={{
-                    width: 48, height: 48,
-                    background: "linear-gradient(135deg, #842200, #531901)",
-                    border: "2px solid #efbb52",
-                  }}
-                >
-                  <i className="fa-solid fa-atom" style={{ color: "#ffb206", fontSize: 20 }} />
+        {/* 2 Kolom Grid: Kiri (About), Kanan (What's new & Kompetisi) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+          {/* b) Kartu Kiri: About ARMASO */}
+          <div className="bg-[#1c0a00]/85 border-2 border-[#efbb52] rounded-[20px] p-[22px] flex flex-col justify-between home-reveal home-reveal-stagger-1">
+            <div>
+              {/* Header kartu: Ikon 48px + Judul Jaro 30px di dalam padding */}
+              <div className="flex items-center gap-3 mb-5">
+                {/* TODO: ganti dengan aset gambar atom dari Figma saat tersedia */}
+                <div className="w-12 h-12 rounded-full shrink-0 flex items-center justify-center bg-gradient-to-br from-[#842200] to-[#531901] border border-[#efbb52]">
+                  <i className="fa-solid fa-atom text-[#ffb206] text-xl" />
                 </div>
-                <h3
-                  className="font-jaro font-normal [font-synthesis:none]"
-                  style={{ fontFamily: "var(--font-home-jaro),'Jaro',sans-serif", fontWeight: 400, fontSize: "clamp(20px,2vw,28px)", color: "#ffb206" }}
-                >
+                <h3 className="font-jaro font-normal [font-synthesis:none] text-[30px] text-[#ffb206] leading-none m-0">
                   About ARMASO
                 </h3>
               </div>
 
-              {/* Teks — justify desktop, left HP */}
-              <div
-                className="font-poppins text-white/90 space-y-3 text-left md:text-justify"
-                style={{ fontWeight: 400, fontSize: "clamp(13px,1.1vw,15px)", lineHeight: 1.7 }}
-              >
-                <p>
+              {/* Paragraf: Poppins 600, 14px, #f5e6c8, justify di desktop, gap 27px */}
+              <div className="flex flex-col gap-[27px]">
+                <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] leading-[1.75] text-left md:text-justify m-0">
                   ARMASO (Ar-Rahmat Mathematic, Science, Social and Sport Olympiad) merupakan olimpiade sains sekaligus kompetisi futsal yang diadakan oleh Pondok Pesantren Modern Ar-Rahmat Bojonegoro.
                 </p>
-                <p>
+                <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] leading-[1.75] text-left md:text-justify m-0">
                   ARMASO hadir dengan empat cabang lomba, yaitu matematika, sains, sosial dan futsal, sebagai wadah untuk mengembangkan bakat dan minat para siswa. ARMASO bertujuan untuk menumbuhkan semangat kompetisi yang sehat, baik dalam bidang olahraga, maupun sains.
                 </p>
-                <p>
+                <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] leading-[1.75] text-left md:text-justify m-0">
                   Lebih dari sekadar adu pengetahuan, ARMASO melatih anak untuk berpikir kritis, memecahkan masalah, dan berkreasi. Lewat lomba futsal, mereka juga belajar bekerja sama, tangkas di lapangan, dan menjunjung tinggi sportivitas. Setiap anak punya tempat untuk bersinar.
                 </p>
               </div>
             </div>
+          </div>
 
-            {/* Kolom kanan: What's new + Kompetisi */}
-            <div className="flex flex-col gap-4">
-
-              {/* c) What's new!?! */}
-              <div
-                className="home-reveal home-reveal-stagger-2 rounded-[20px] p-5 flex flex-col"
-                style={{ background: "rgba(28, 10, 0, 0.85)", border: "2px solid #efbb52" }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  {/* TODO: ganti fa-eye dengan aset ikon mata dari Figma saat tersedia */}
-                  <div
-                    className="flex items-center justify-center rounded-full shrink-0"
-                    style={{
-                      width: 48, height: 48,
-                      background: "linear-gradient(135deg, #842200, #531901)",
-                      border: "2px solid #efbb52",
-                    }}
-                  >
-                    <i className="fa-solid fa-eye" style={{ color: "#ffb206", fontSize: 20 }} />
-                  </div>
-                  <h3
-                    className="font-jaro font-normal [font-synthesis:none]"
-                    style={{ fontFamily: "var(--font-home-jaro),'Jaro',sans-serif", fontWeight: 400, fontSize: "clamp(20px,2vw,28px)", color: "#ffb206" }}
-                  >
-                    What&apos;s new!?!
-                  </h3>
-                </div>
+          {/* Kolom Kanan: What's new & Kompetisi */}
+          <div className="flex flex-col gap-5 justify-between">
+            {/* c) What's new!?! */}
+            <div className="bg-[#1c0a00]/85 border-2 border-[#efbb52] rounded-[20px] p-[22px] flex flex-col home-reveal home-reveal-stagger-2">
+              {/* Header kartu: Ikon 👀 48px + Judul Jaro 30px di dalam padding */}
+              <div className="flex items-center gap-3 mb-5">
                 <div
-                  className="font-poppins text-white/90 space-y-3 text-left md:text-justify"
-                  style={{ fontWeight: 400, fontSize: "clamp(13px,1.1vw,15px)", lineHeight: 1.7 }}
+                  className="w-12 h-12 rounded-full shrink-0 flex items-center justify-center bg-[#842200] border border-[#efbb52] text-[22px] leading-none select-none"
+                  aria-hidden="true"
                 >
-                  <p>
-                    Tahun ini, ARMASO resmi menghadirkan satu bidang baru, yaitu Sport Competition. Untuk pertama kalinya, peserta tidak hanya beradu nalar di Matematika, Sains, dan Sosial, tetapi juga unjuk ketangkasan di lapangan lewat cabang olahraga Futsal.
-                  </p>
-                  <p>
-                    Lewat Sport Competition, anak-anak belajar tentang sportivitas, kerja sama, dan semangat pantang menyerah. Cerdas di kelas, tangguh di lapangan!
-                  </p>
+                  👀
                 </div>
-              </div>
-
-              {/* d) Kompetisi */}
-              <div
-                className="home-reveal home-reveal-stagger-3 rounded-[20px] p-5"
-                style={{ background: "rgba(28, 10, 0, 0.85)", border: "2px solid #efbb52" }}
-              >
-                <h3
-                  className="font-jaro font-normal [font-synthesis:none] text-center mb-4"
-                  style={{ fontFamily: "var(--font-home-jaro),'Jaro',sans-serif", fontWeight: 400, fontSize: "clamp(18px,1.8vw,26px)", color: "#ffb206" }}
-                >
-                  Kompetisi
+                <h3 className="font-jaro font-normal [font-synthesis:none] text-[30px] text-[#ffb206] leading-none m-0">
+                  What&apos;s new!?!
                 </h3>
-                {/* Dua kolom: Sains | garis emas | Sport */}
-                <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
-                  {/* Sains */}
-                  <div className="text-center">
-                    <p
-                      className="font-poppins font-bold mb-2"
-                      style={{ color: "#ffb206", fontSize: "clamp(14px,1.2vw,17px)" }}
-                    >
-                      Sains
-                    </p>
-                    <ul className="font-poppins text-white/85 space-y-1" style={{ fontSize: "clamp(12px,1vw,15px)" }}>
-                      <li>Matematika</li>
-                      <li>Sains</li>
-                      <li>Sosial</li>
-                    </ul>
-                  </div>
-                  {/* Pemisah vertikal emas */}
-                  <div style={{ width: 2, minHeight: 80, background: "#efbb52", alignSelf: "stretch", borderRadius: 2 }} />
-                  {/* Sport */}
-                  <div className="text-center">
-                    <p
-                      className="font-poppins font-bold mb-2"
-                      style={{ color: "#ffb206", fontSize: "clamp(14px,1.2vw,17px)" }}
-                    >
-                      Sport
-                    </p>
-                    <ul className="font-poppins text-white/85 space-y-1" style={{ fontSize: "clamp(12px,1vw,15px)" }}>
-                      <li>Futsal</li>
-                    </ul>
-                  </div>
-                </div>
               </div>
 
+              {/* Paragraf: Poppins 600, 14px, #f5e6c8, justify di desktop, gap 27px */}
+              <div className="flex flex-col gap-[27px]">
+                <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] leading-[1.75] text-left md:text-justify m-0">
+                  Tahun ini, ARMASO resmi menghadirkan satu bidang baru, yaitu Sport Competition. Untuk pertama kalinya, peserta tidak hanya beradu nalar di Matematika, Sains, dan Sosial, tetapi juga unjuk ketangkasan di lapangan lewat cabang olahraga Futsal.
+                </p>
+                <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] leading-[1.75] text-left md:text-justify m-0">
+                  Lewat Sport Competition, anak-anak belajar tentang sportivitas, kerja sama, dan semangat pantang menyerah. Cerdas di kelas, tangguh di lapangan!
+                </p>
+              </div>
+            </div>
+
+            {/* d) Kompetisi */}
+            <div className="bg-[#1c0a00]/85 border-2 border-[#efbb52] rounded-[20px] p-[22px] home-reveal home-reveal-stagger-3">
+              <h3 className="font-jaro font-normal [font-synthesis:none] text-[25px] text-[#ffb206] text-center mb-4 leading-none m-0">
+                Kompetisi
+              </h3>
+              <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-start pt-2">
+                {/* Kolom Sains */}
+                <div className="text-center">
+                  <p className="font-jaro font-normal [font-synthesis:none] text-[25px] text-[#ffb206] mb-2 leading-none">
+                    Sains
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] m-0">Matematika</p>
+                    <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] m-0">Sains</p>
+                    <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] m-0">Sosial</p>
+                  </div>
+                </div>
+
+                {/* Garis vertikal pemisah */}
+                <div className="w-[2px] min-h-[90px] bg-[#efbb52] rounded-full self-stretch" />
+
+                {/* Kolom Sport */}
+                <div className="text-center">
+                  <p className="font-jaro font-normal [font-synthesis:none] text-[25px] text-[#ffb206] mb-2 leading-none">
+                    Sport
+                  </p>
+                  <p className="font-poppins font-semibold text-[14px] text-[#f5e6c8] m-0">Futsal</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -200,4 +135,3 @@ export default function HomeAbout() {
     </section>
   );
 }
-
