@@ -34,7 +34,20 @@ export default function Navbar() {
     <header className={`navbar ${isScrolled ? "scrolled" : ""}`} id="navbar">
       <div className="container nav-container">
         {/* Brand Logo */}
-        <Link href="/" className="brand-logo" onClick={closeMenu} aria-label="Beranda ARMASO 2027">
+        <Link
+          href="/"
+          className="brand-logo"
+          onClick={closeMenu}
+          aria-label="Beranda ARMASO 2027"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            paddingLeft: '96px', // <--- Tambahkan jarak dari sisi kiri layar di sini
+            paddingTop: '8px',
+            paddingBottom: '8px',
+          }}
+        >
           <img
             src="/Logo_Armaso_Final-Sayap.svg"
             alt="Logo Sayap ARMASO 2027"

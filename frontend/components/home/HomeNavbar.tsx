@@ -6,8 +6,8 @@ import Image from "next/image";
 
 const NAV_LINKS = [
   { label: "Home", href: "#beranda" },
-  { label: "Olympiad", href: "#lomba" },
-  { label: "Futsal Competition", href: "#lomba" },
+  { label: "Olympiad", href: "#kompetisi" },
+  { label: "Futsal Competition", href: "#kompetisi" },
   { label: "About Us", href: "#about" },
   { label: "Contact", href: "#kontak" },
 ];
