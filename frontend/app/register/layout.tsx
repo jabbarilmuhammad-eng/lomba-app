@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/home/HomeNavbar";
 
 export default function RegisterLayout({
   children,

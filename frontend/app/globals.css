@@ -324,3 +324,112 @@ body {
     transition: none;
   }
 }
+
+/* Khusus footer: jangan bergantung pada animasi hero beranda */
+footer.home-fade-up {
+  opacity: 1;
+  animation: none;
+}
+
+footer.home-fade-up .home-reveal {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: none;
+}
+
+
+/* Interaksi logo ARMASO pada navbar */
+.armaso-navbar-brand {
+  text-decoration: none;
+  border-radius: 12px;
+  outline-offset: 5px;
+}
+
+.armaso-navbar-brand .armaso-navbar-logo {
+  filter: drop-shadow(0 0 0 rgba(255, 178, 6, 0));
+  transform: scale(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .armaso-navbar-brand:hover .armaso-navbar-logo {
+    filter:
+      drop-shadow(0 0 5px rgba(255, 178, 6, 0.9)) drop-shadow(0 0 13px rgba(255, 178, 6, 0.65)) drop-shadow(0 0 24px rgba(239, 187, 82, 0.35));
+    transform: scale(1.06);
+  }
+
+  .armaso-navbar-brand:hover span {
+    color: #ffca55 !important;
+    text-shadow:
+      0 0 8px rgba(255, 178, 6, 0.75),
+      0 0 18px rgba(255, 178, 6, 0.4);
+  }
+}
+
+/* Glow juga terlihat saat logo difokuskan dengan keyboard */
+.armaso-navbar-brand:focus-visible {
+  outline: 2px solid #ffb206;
+}
+
+.armaso-navbar-brand:focus-visible .armaso-navbar-logo {
+  filter:
+    drop-shadow(0 0 6px rgba(255, 178, 6, 0.9)) drop-shadow(0 0 16px rgba(255, 178, 6, 0.6));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .armaso-navbar-brand .armaso-navbar-logo {
+    transition: none !important;
+  }
+}
+
+
+/* Efek interaktif tombol form futsal */
+.futsal-btn-primary,
+.futsal-btn-secondary {
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease,
+    border-color 220ms ease,
+    filter 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .futsal-btn-primary:not(:disabled):hover {
+    transform: translateY(-3px);
+    filter: brightness(1.12);
+    box-shadow:
+      0 0 10px rgba(255, 180, 0, 0.65),
+      0 0 24px rgba(255, 180, 0, 0.35),
+      0 8px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .futsal-btn-secondary:not(:disabled):hover {
+    transform: translateY(-3px);
+    background-color: #211306 !important;
+    border-color: #ffca55 !important;
+    color: #ffca55 !important;
+    box-shadow:
+      0 0 8px rgba(255, 180, 0, 0.45),
+      0 0 18px rgba(255, 180, 0, 0.2);
+  }
+
+  .futsal-btn-primary:not(:disabled):active,
+  .futsal-btn-secondary:not(:disabled):active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+.futsal-btn-primary:focus-visible,
+.futsal-btn-secondary:focus-visible {
+  outline: 2px solid #ffca55;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .futsal-btn-primary,
+  .futsal-btn-secondary {
+    transition: none !important;
+  }
+}

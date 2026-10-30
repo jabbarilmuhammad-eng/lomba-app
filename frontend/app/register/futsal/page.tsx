@@ -1,46 +1,101 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import HomeFooter from "@/components/home/HomeFooter";
+import type { CSSProperties } from "react";
+
+type Step = 1 | 2 | 3;
+
+const REGISTRATION_FEE = 150000;
+const API_BASE_URL = "http://localhost:3001";
+
+const steps = [
+  { number: 1, label: "DATA TIM" },
+  { number: 2, label: "PEMBAYARAN" },
+  { number: 3, label: "UPLOAD BUKTI" },
+] as const;
+
+const formatRupiah = (amount: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
 
 export default function FutsalRegistrationPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [step, setStep] = useState<Step>(1);
   const [school, setSchool] = useState("");
   const [officialName, setOfficialName] = useState("");
   const [officialPhone, setOfficialPhone] = useState("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Ukuran file maksimal adalah 5MB!");
-        return;
-      }
-      setPaymentProof(file);
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file maksimal adalah 5MB!");
+      event.target.value = "";
+      setPaymentProof(null);
+      return;
     }
+
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Format file harus JPG, PNG, atau PDF.");
+      event.target.value = "";
+      setPaymentProof(null);
+      return;
+    }
+
+    setPaymentProof(file);
   };
 
   const handleRemoveFile = () => {
     setPaymentProof(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const goToPayment = () => {
     if (!school.trim()) {
       alert("Asal sekolah wajib diisi!");
       return;
     }
-
+    if (!officialName.trim()) {
+      alert("Nama guru pembina / official wajib diisi!");
+      return;
+    }
     if (!officialPhone.trim()) {
-      alert("Nomor WhatsApp official / pelatih wajib diisi!");
+      alert("Nomor WhatsApp official / guru pembina wajib diisi!");
+      return;
+    }
+    setStep(2);
+    scrollToTop();
+  };
+
+  const goToUpload = () => {
+    setStep(3);
+    scrollToTop();
+  };
+
+  const goBack = () => {
+    setStep((current) => (current === 3 ? 2 : 1));
+    scrollToTop();
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!school.trim() || !officialName.trim() || !officialPhone.trim()) {
+      alert("Pastikan semua data tim sudah diisi dengan benar.");
+      setStep(1);
       return;
     }
 
@@ -52,630 +107,586 @@ export default function FutsalRegistrationPage() {
     setLoading(true);
 
     try {
-      // 1. Submit futsal registration data
-      const response = await fetch(
-        "http://localhost:3001/registrations/futsal",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            teamName: `Tim ${school.trim()}`,
-            school: school.trim(),
-            members: [
-              officialName.trim()
-                ? `${officialName.trim()} (Official - ${officialPhone.trim()})`
-                : `Official (${officialPhone.trim()})`,
-            ],
-          }),
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/registrations/futsal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName: `Tim ${school.trim()}`,
+          school: school.trim(),
+          members: [
+            `${officialName.trim()} (Official - ${officialPhone.trim()})`,
+          ],
+        }),
+      });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (response.ok && data.registrationId) {
-        // 2. Upload payment proof to payments endpoint
-        try {
-          const formData = new FormData();
-          formData.append("amount", "150000");
-          formData.append("registrationId", String(data.registrationId));
-          formData.append("proof", paymentProof);
-
-          await fetch("http://localhost:3001/payments", {
-            method: "POST",
-            body: formData,
-          });
-        } catch (paymentErr) {
-          console.warn("Payment proof upload notice:", paymentErr);
-        }
-
-        router.push(`/payment?registrationId=${data.registrationId}&success=true`);
-      } else {
-        alert(data.message || "Pendaftaran gagal dikirim!");
+      if (!response.ok || !data.registrationId) {
+        throw new Error(data.message || "Pendaftaran gagal dikirim!");
       }
+
+      const formData = new FormData();
+      formData.append("amount", String(REGISTRATION_FEE));
+      formData.append("registrationId", String(data.registrationId));
+      formData.append("proof", paymentProof);
+
+      const paymentResponse = await fetch(`${API_BASE_URL}/payments`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!paymentResponse.ok) {
+        alert(
+          "Data pendaftaran berhasil disimpan, tetapi bukti pembayaran gagal diunggah. Silakan coba kembali dari halaman pembayaran."
+        );
+        router.push(
+          `/payment?registrationId=${encodeURIComponent(String(data.registrationId))}&success=false`
+        );
+        return;
+      }
+
+      router.push(
+        `/payment?registrationId=${encodeURIComponent(String(data.registrationId))}&success=true`
+      );
     } catch (error) {
       console.error(error);
-      alert("Pendaftaran berhasil disimpan!");
-      router.push("/register");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat mengirim pendaftaran. Silakan coba lagi."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const panelStyle: React.CSSProperties = {
+    background: "rgba(0, 0, 0, 0.88)",
+    border: "2px solid #ffb400",
+    borderRadius: 24,
+    padding: "clamp(18px, 3vw, 34px)",
+    boxSizing: "border-box",
+    width: "100%",
+    color: "#fff",
+    boxShadow: "0 12px 40px rgba(0,0,0,.3)",
+  };
+
+  const sectionStyle: React.CSSProperties = {
+    border: "2px solid #ffb400",
+    borderRadius: 18,
+    padding: "22px",
+    background: "rgba(0,0,0,.9)",
+    boxSizing: "border-box",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    color: "#ffb400",
+    fontSize: 12,
+    fontWeight: 800,
+    marginBottom: 12,
+    textTransform: "uppercase",
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    boxSizing: "border-box",
+    background: "#050505",
+    border: "1px solid #ffb400",
+    borderRadius: 12,
+    padding: "14px 16px",
+    color: "#fff",
+    fontSize: 14,
+    outline: "none",
+  };
+
+  const primaryButtonStyle: CSSProperties = {
+    width: "100%",
+    border: 0,
+    borderRadius: 24,
+    background: loading ? "#a97900" : "#ffb400",
+    color: "#050505",
+    padding: "19px 24px",
+    fontSize: 20,
+    fontWeight: 900,
+    cursor: loading ? "not-allowed" : "pointer",
+  };
+
+  const secondaryButtonStyle: CSSProperties = {
+    border: "1px solid #ffb400",
+    borderRadius: 14,
+    background: "#080808",
+    color: "#ffb400",
+    padding: "13px 22px",
+    fontWeight: 800,
+    cursor: "pointer",
+  };
+
   return (
-    <div
-      className="register-page-wrapper"
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        backgroundColor: "#0c0906",
-        color: "#fbf5e6",
-        padding: "120px 20px 60px",
-        boxSizing: "border-box",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      {/* Container Utama */}
-      <div
+    <>
+      <main
         style={{
-          maxWidth: "880px",
-          margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "35px",
+          position: "relative",
+          isolation: "isolate",
+          minHeight: "calc(100vh - 80px)",
           width: "100%",
+          padding: "clamp(20px, 5vw, 70px) 16px 60px",
           boxSizing: "border-box",
+          color: "#fff",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          backgroundColor: "#06101d",
+          backgroundImage: `linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.58)), url('/images/home/bg-${step}.png')`,
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
         }}
       >
-        {/* Header Title Section */}
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              display: "inline-block",
-              padding: "6px 16px",
-              backgroundColor: "#16100b",
-              border: "1px solid #d4af37",
-              color: "#f6d066",
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: "bold",
-              marginBottom: "15px",
-            }}
-          >
-            TURNAMEN FUTSAL PUTRA SD/MI SE-JAWA BALI
-          </div>
-          <h1
-            style={{
-              fontSize: "36px",
-              fontWeight: "900",
-              textTransform: "uppercase",
-              margin: "0 0 12px 0",
-              color: "#ffffff",
-              lineHeight: "1.2",
-            }}
-          >
-            REGISTRASI TURNAMEN <span style={{ color: "#f6d066" }}>FUTSAL ARMASO 2027</span>
-          </h1>
-          <p
-            style={{
-              color: "#e2d2b5",
-              fontSize: "15px",
-              maxWidth: "660px",
-              margin: "0 auto",
-              lineHeight: "1.6",
-            }}
-          >
-            Daftarkan delegasi tim futsal sekolah Anda untuk memperebutkan Trophy Bergilir ARMASO Cup dan hadiah uang pembinaan.
-          </p>
-
-          {/* Quick Highlights Strip */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "16px",
-              marginTop: "25px",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                backgroundColor: "#16100b",
-                border: "1px solid rgba(212, 175, 55, 0.3)",
-                borderRadius: "16px",
-                padding: "16px",
-                boxSizing: "border-box",
-              }}
-            >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "12px",
-                  backgroundColor: "#23180f",
-                  border: "1px solid rgba(212, 175, 55, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#f6d066",
-                  fontSize: "18px",
-                  flexShrink: 0,
-                }}
-              >
-                <i className="fa-solid fa-money-bill-wave" />
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: "11px", textTransform: "uppercase", color: "#e2d2b5", opacity: 0.7, fontWeight: "600" }}>
-                  Biaya Registrasi
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                  Rp 150.000 / Tim
-                </div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                backgroundColor: "#16100b",
-                border: "1px solid rgba(212, 175, 55, 0.3)",
-                borderRadius: "16px",
-                padding: "16px",
-                boxSizing: "border-box",
-              }}
-            >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "12px",
-                  backgroundColor: "#23180f",
-                  border: "1px solid rgba(212, 175, 55, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#f6d066",
-                  fontSize: "18px",
-                  flexShrink: 0,
-                }}
-              >
-                <i className="fa-solid fa-award" />
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: "11px", textTransform: "uppercase", color: "#e2d2b5", opacity: 0.7, fontWeight: "600" }}>
-                  Apresiasi Juara
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ffd873" }}>
-                  Trophy &amp; Pembinaan
-                </div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                backgroundColor: "#16100b",
-                border: "1px solid rgba(212, 175, 55, 0.3)",
-                borderRadius: "16px",
-                padding: "16px",
-                boxSizing: "border-box",
-              }}
-            >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "12px",
-                  backgroundColor: "#23180f",
-                  border: "1px solid rgba(212, 175, 55, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#f6d066",
-                  fontSize: "18px",
-                  flexShrink: 0,
-                }}
-              >
-                <i className="fa-solid fa-futbol" />
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: "11px", textTransform: "uppercase", color: "#e2d2b5", opacity: 0.7, fontWeight: "600" }}>
-                  Format Turnamen
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                  Sistem Gugur
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Form Card */}
         <div
           style={{
-            backgroundColor: "#16100b",
-            border: "1px solid rgba(212, 175, 55, 0.45)",
-            borderRadius: "24px",
-            padding: "36px 28px",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.85)",
-            boxSizing: "border-box",
             width: "100%",
+            maxWidth: 1010,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 38,
           }}
         >
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "26px", width: "100%", boxSizing: "border-box" }}>
-            {/* Form Section Header */}
-            <div
+          <div
+            style={{
+              background: "#000",
+              border: "1.5px solid #ffb400",
+              borderRadius: 28,
+              padding: "24px 28px",
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 18,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                color: "#ffb400",
+                border: "2px solid #ffb400",
+                width: 27,
+                height: 27,
+                borderRadius: "50%",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 900,
+                flexShrink: 0,
+              }}
+            >
+              !
+            </span>
+            <strong style={{ color: "#ffb400", fontSize: 13, flex: "1 1 240px" }}>
+              Pastikan data yang kamu isi sudah sesuai
+            </strong>
+            <button
+              type="button"
+              style={secondaryButtonStyle}
+              onClick={() => window.open("/guidebook", "_blank", "noopener,noreferrer")}
+            >
+              Lihat guidebook ↗
+            </button>
+            <button
+              type="button"
+              style={secondaryButtonStyle}
+              onClick={() => window.open("/twibbon", "_blank", "noopener,noreferrer")}
+            >
+              Lihat twibbon ↗
+            </button>
+          </div>
+
+          <section style={panelStyle}>
+            <nav
+              aria-label="Progress pendaftaran"
               style={{
                 display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                borderBottom: "1px solid rgba(212, 175, 55, 0.25)",
-                paddingBottom: "18px",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                gap: 0,
+                margin: "4px auto 34px",
+                maxWidth: 470,
               }}
             >
-              <div
-                style={{
-                  width: "42px",
-                  height: "42px",
-                  borderRadius: "12px",
-                  backgroundColor: "#23180f",
-                  border: "1px solid rgba(212, 175, 55, 0.5)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#f6d066",
-                  fontSize: "18px",
-                  flexShrink: 0,
-                }}
-              >
-                <i className="fa-solid fa-file-signature" />
-              </div>
-              <div>
-                <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#ffffff", margin: "0 0 4px 0", textTransform: "uppercase" }}>
-                  Formulir Registrasi Futsal
-                </h2>
-                <p style={{ fontSize: "12px", color: "#e2d2b5", opacity: 0.75, margin: 0 }}>
-                  Isi data asal sekolah, kontak WhatsApp official/pelatih, dan unggah bukti transfer pendaftaran
-                </p>
-              </div>
-            </div>
-
-            {/* Input 1: Asal Sekolah */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  color: "#e2d2b5",
-                  marginBottom: "8px",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Asal Sekolah <span style={{ color: "#f6d066" }}>*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Isi Asal Sekolah"
-                value={school}
-                onChange={(e) => setSchool(e.target.value)}
-                required
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  backgroundColor: "#0c0906",
-                  border: "1px solid rgba(212, 175, 55, 0.4)",
-                  borderRadius: "10px",
-                  padding: "13px 14px",
-                  color: "#fbf5e6",
-                  fontSize: "14px",
-                  outline: "none",
-                  display: "block",
-                }}
-              />
-              <span style={{ display: "block", fontSize: "11px", color: "#e2d2b5", opacity: 0.6, marginTop: "6px" }}>
-                Tuliskan nama lengkap sekolah serta kota atau kabupaten delegasi tim.
-              </span>
-            </div>
-
-            {/* Input 2: Official Details Grid (Nama & WhatsApp) */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "18px",
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-            >
-
-              {/* Nomor WhatsApp Official */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    color: "#e2d2b5",
-                    marginBottom: "8px",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Nomor WhatsApp Official <span style={{ color: "#f6d066" }}>*</span>
-                </label>
-                <input
-                  type="tel"
-                  placeholder="Isi Nomor WhatsApp"
-                  value={officialPhone}
-                  onChange={(e) => setOfficialPhone(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    backgroundColor: "#0c0906",
-                    border: "1px solid rgba(212, 175, 55, 0.4)",
-                    borderRadius: "10px",
-                    padding: "13px 14px",
-                    color: "#fbf5e6",
-                    fontSize: "14px",
-                    outline: "none",
-                    display: "block",
-                  }}
-                />
-                <span style={{ display: "block", fontSize: "11px", color: "#e2d2b5", opacity: 0.6, marginTop: "6px" }}>
-                  Nomor WhatsApp aktif untuk koordinasi technical meeting.
-                </span>
-              </div>
-            </div>
-
-            {/* Input 3: Bukti Pembayaran */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  color: "#e2d2b5",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Bukti Pembayaran Transfer <span style={{ color: "#f6d066" }}>*</span>
-              </label>
-
-              {/* Transfer Info Box */}
-              <div
-                style={{
-                  backgroundColor: "#0c0906",
-                  border: "1px solid rgba(212, 175, 55, 0.35)",
-                  borderRadius: "16px",
-                  padding: "16px 20px",
-                  boxSizing: "border-box",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  fontSize: "13px",
-                  color: "#e2d2b5",
-                }}
-              >
+              {steps.map((item, index) => (
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: "8px",
-                    color: "#f6d066",
-                    fontWeight: "bold",
-                    borderBottom: "1px solid rgba(212, 175, 55, 0.2)",
-                    paddingBottom: "8px",
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <i className="fa-solid fa-building-columns" /> Rekening Resmi Panitia ARMASO:
-                  </span>
-                  <span style={{ color: "#ffffff" }}>Rp 150.000 / Tim</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-                  <span>Bank Syariah Indonesia (BSI): <strong style={{ color: "#ffffff", letterSpacing: "1px" }}>714 832 9901</strong></span>
-                  <span>a.n. <strong style={{ color: "#ffffff" }}>Panitia ARMASO 2027</strong></span>
-                </div>
-              </div>
-
-              {/* Upload Zone */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileChange}
-                required={!paymentProof}
-                style={{ display: "none" }}
-                id="futsal-proof-upload"
-              />
-
-              {!paymentProof ? (
-                <label
-                  htmlFor="futsal-proof-upload"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "12px",
-                    border: "2px dashed rgba(212, 175, 55, 0.45)",
-                    borderRadius: "16px",
-                    backgroundColor: "rgba(12, 9, 6, 0.7)",
-                    padding: "30px 20px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    boxSizing: "border-box",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "14px",
-                      backgroundColor: "#23180f",
-                      border: "1px solid rgba(212, 175, 55, 0.5)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#f6d066",
-                      fontSize: "22px",
-                    }}
-                  >
-                    <i className="fa-solid fa-cloud-arrow-up" />
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "bold", color: "#ffffff" }}>
-                      Klik untuk Unggah Bukti Transfer
-                    </p>
-                    <p style={{ margin: 0, fontSize: "11px", color: "#e2d2b5", opacity: 0.65 }}>
-                      Format JPG, PNG, atau PDF (Ukuran maksimal 5MB)
-                    </p>
-                  </div>
-                </label>
-              ) : (
-                <div
+                  key={item.number}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "14px",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(246, 208, 102, 0.6)",
-                    backgroundColor: "rgba(35, 24, 15, 0.85)",
-                    padding: "16px 20px",
-                    boxSizing: "border-box",
+                    flex: index < steps.length - 1 ? 1 : "0 0 auto",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9 }}>
                     <div
+                      aria-current={step === item.number ? "step" : undefined}
                       style={{
-                        width: "44px",
-                        height: "44px",
-                        borderRadius: "12px",
-                        backgroundColor: "#0c0906",
-                        border: "1px solid rgba(212, 175, 55, 0.5)",
+                        width: 52,
+                        height: 64,
+                        border: "2px solid #ffb400",
+                        borderRadius: 20,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#f6d066",
-                        fontSize: "20px",
-                        flexShrink: 0,
+                        background: step === item.number ? "#ffb400" : "#000",
+                        color: step === item.number ? "#000" : "#ffb400",
+                        fontSize: 15,
+                        fontWeight: 900,
                       }}
                     >
-                      <i className="fa-solid fa-file-invoice" />
+                      {item.number}
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: "0 0 2px 0", fontSize: "14px", fontWeight: "bold", color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {paymentProof.name}
-                      </p>
-                      <p style={{ margin: 0, fontSize: "12px", color: "#f6d066" }}>
-                        {(paymentProof.size / 1024).toFixed(1)} KB • Siap diunggah
-                      </p>
+                    <span
+                      style={{
+                        border: "2px solid #ffb400",
+                        color: "#ffb400",
+                        background: "#000",
+                        borderRadius: 14,
+                        padding: "6px 12px",
+                        fontSize: 8,
+                        fontWeight: 900,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        height: 1,
+                        background: "#ffb400",
+                        flex: 1,
+                        minWidth: 22,
+                        margin: "0 8px 31px",
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </nav>
+
+            {step === 1 && (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  goToPayment();
+                }}
+                style={{ display: "flex", flexDirection: "column", gap: 18 }}
+              >
+                <div style={sectionStyle}>
+                  <label htmlFor="officialName" style={labelStyle}>
+                    Nama Guru Pembina / Official
+                  </label>
+                  <input
+                    id="officialName"
+                    value={officialName}
+                    onChange={(event) => setOfficialName(event.target.value)}
+                    placeholder="Nama Guru Pembina"
+                    autoComplete="name"
+                    required
+                    style={inputStyle}
+                  />
+                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
+                    Isi dengan nama guru pembina atau official tim.
+                  </small>
+                </div>
+
+                <div style={sectionStyle}>
+                  <label htmlFor="officialPhone" style={labelStyle}>
+                    Nomor WhatsApp Official/Guru Pembina
+                  </label>
+                  <input
+                    id="officialPhone"
+                    type="tel"
+                    value={officialPhone}
+                    onChange={(event) => setOfficialPhone(event.target.value)}
+                    placeholder="Nomor WhatsApp"
+                    autoComplete="tel"
+                    required
+                    style={inputStyle}
+                  />
+                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
+                    Gunakan nomor WhatsApp aktif untuk koordinasi panitia.
+                  </small>
+                </div>
+
+                <div style={sectionStyle}>
+                  <label htmlFor="school" style={labelStyle}>
+                    Asal Sekolah
+                  </label>
+                  <input
+                    id="school"
+                    value={school}
+                    onChange={(event) => setSchool(event.target.value)}
+                    placeholder="Nama Sekolah"
+                    autoComplete="organization"
+                    required
+                    style={inputStyle}
+                  />
+                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
+                    Tuliskan nama lengkap sekolah serta kota atau kabupaten delegasi tim.
+                  </small>
+                </div>
+
+                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14 }}>
+                  <button
+                    type="button"
+                    className="futsal-btn-primary"
+                    onClick={goToUpload}
+                    style={primaryButtonStyle}
+                  >
+                    LANJUT
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === 2 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+                <section style={sectionStyle}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      color: "#ffb400",
+                      fontWeight: 900,
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</span>
+                    <span>Rp150.000 (1 Tim)</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginTop: 18,
+                      color: "#ddd",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>Bank Syariah Indonesia (BSI): 3846-01-045309-53-9</span>
+                    <strong>Panitia Armaso 2027 (Rafi Aziz)</strong>
+                  </div>
+                </section>
+
+                <section style={sectionStyle}>
+                  <h2 style={{ color: "#ffb400", fontSize: 14, margin: "0 0 22px", fontWeight: 900 }}>
+                    ♙ &nbsp; TOTAL PEMBAYARAN
+                  </h2>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
+                      gap: 14,
+                      marginBottom: 22,
+                    }}
+                  >
+                    <div style={{ border: "1px solid #ffb400", borderRadius: 14, padding: 16 }}>
+                      <strong style={{ display: "block", color: "#ffb400", fontSize: 13 }}>TOTAL TIM</strong>
+                      <span style={{ display: "block", marginTop: 6, fontSize: 12 }}>1 TIM</span>
+                    </div>
+                    <div style={{ border: "1px solid #ffb400", borderRadius: 14, padding: 16 }}>
+                      <strong style={{ display: "block", color: "#ffb400", fontSize: 10 }}>TARIF PER TIM</strong>
+                      <span style={{ display: "block", marginTop: 6, fontWeight: 900 }}>{formatRupiah(REGISTRATION_FEE)}</span>
                     </div>
                   </div>
+                  <div
+                    style={{
+                      border: "1px solid #ffb400",
+                      borderRadius: 14,
+                      padding: 18,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <strong style={{ color: "#ffb400" }}>TOTAL PEMBAYARAN KESELURUHAN</strong>
+                      <small style={{ display: "block", marginTop: 8 }}>1 tim × {formatRupiah(REGISTRATION_FEE)}</small>
+                    </div>
+                    <strong style={{ color: "#ffb400", fontSize: 17 }}>{formatRupiah(REGISTRATION_FEE)}</strong>
+                  </div>
+                </section>
+
+                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <button
+                    type="button"
+                    className="futsal-btn-primary"
+                    onClick={goToUpload}
+                    style={primaryButtonStyle}
+                  >
+                    LANJUT
+                  </button>
+                  <button
+                    type="button"
+                    className="futsal-btn-secondary"
+                    onClick={goBack}
+                    style={secondaryButtonStyle}
+                  >
+                    KEMBALI
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+                <section style={sectionStyle}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      color: "#ffb400",
+                      fontWeight: 900,
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</span>
+                    <span>Rp150.000 (1 Tim)</span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      marginTop: 18,
+                      color: "#ddd",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>Bank Syariah Indonesia (BSI): 3846-01-045309-53-9</span>
+                    <strong>Panitia Armaso 2027 (Rafi Aziz)</strong>
+                  </div>
+                </section>
+
+                <section>
+                  <input
+                    ref={fileInputRef}
+                    id="paymentProof"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
+
+                  {!paymentProof ? (
+                    <label
+                      htmlFor="paymentProof"
+                      style={{
+                        minHeight: 280,
+                        border: "1.5px dashed #ffb400",
+                        borderRadius: 22,
+                        background: "rgba(90, 31, 0, .92)",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                        gap: 18,
+                        padding: 24,
+                        cursor: "pointer",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <span aria-hidden="true" style={{ fontSize: 48, color: "#ffb400" }}>▤</span>
+                      <strong style={{ color: "#ffb400", fontSize: 16 }}>
+                        KLIK UNTUK UNGGAH BUKTI TRANSFER
+                      </strong>
+                      <small style={{ color: "#ddd", fontSize: 11 }}>
+                        Format JPEG, PNG, atau PDF (Ukuran Maksimal 5MB)
+                      </small>
+                    </label>
+                  ) : (
+                    <div
+                      style={{
+                        border: "1.5px solid #ffb400",
+                        borderRadius: 18,
+                        background: "rgba(0,0,0,.9)",
+                        padding: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 16,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <strong style={{ overflowWrap: "anywhere" }}>{paymentProof.name}</strong>
+                        <small style={{ display: "block", color: "#ffb400", marginTop: 8 }}>
+                          {(paymentProof.size / 1024).toFixed(1)} KB · Siap diunggah
+                        </small>
+                      </div>
+                      <button type="button" onClick={handleRemoveFile} style={secondaryButtonStyle}>
+                        HAPUS FILE
+                      </button>
+                    </div>
+                  )}
+                </section>
+
+                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+
+                  <button
+                    type="submit"
+                    className="futsal-btn-primary"
+                    disabled={loading}
+                    style={primaryButtonStyle}
+                  >
+                    {loading ? "MENGIRIM PENDAFTARAN..." : "KIRIM PENDAFTARAN"}
+                  </button>
 
                   <button
                     type="button"
-                    onClick={handleRemoveFile}
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "10px",
-                      backgroundColor: "rgba(127, 29, 29, 0.4)",
-                      border: "1px solid rgba(239, 68, 68, 0.4)",
-                      color: "#fca5a5",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                    }}
-                    title="Ganti Bukti Transfer"
+                    className="futsal-btn-secondary"
+                    onClick={goBack}
+                    style={secondaryButtonStyle}
                   >
-                    <i className="fa-solid fa-trash-can" style={{ fontSize: "14px" }} />
+                    KEMBALI
                   </button>
                 </div>
-              )}
-            </div>
+              </form>
+            )}
 
-            {/* Tombol Submit */}
-            <div style={{ paddingTop: "15px", borderTop: "1px solid rgba(212, 175, 55, 0.25)" }}>
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "10px",
-                  padding: "16px 24px",
-                  backgroundColor: loading ? "#78550f" : "#d4af37",
-                  color: "#120c06",
-                  border: "none",
-                  borderRadius: "14px",
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 20px rgba(212, 175, 55, 0.35)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {loading ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin" />
-                    <span>Mengirim Formulir Pendaftaran...</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-crown" />
-                    <span>Kirim Pendaftaran Futsal →</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-
-          {/* Security Note Footer */}
-          <div
-            style={{
-              marginTop: "25px",
-              paddingTop: "18px",
-              borderTop: "1px solid rgba(212, 175, 55, 0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              textAlign: "center",
-              fontSize: "12px",
-              color: "#e2d2b5",
-              opacity: 0.75,
-            }}
-          >
-            <i className="fa-solid fa-shield-halved" style={{ color: "#f6d066" }} />
-            <span>Data pendaftaran dan bukti transfer Anda akan diverifikasi oleh panitia pelaksana ARMASO 2027</span>
-          </div>
+            <footer
+              style={{
+                borderTop: "1px solid rgba(255,180,0,.35)",
+                marginTop: 28,
+                paddingTop: 18,
+                color: "#ddd",
+                textAlign: "center",
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              Data pendaftaran dan bukti transfer akan diverifikasi
+              oleh panitia pelaksana ARMASO 2027.
+            </footer>
+          </section>
         </div>
-      </div>
-    </div>
+      </main>
+
+      {/* FOOTER UTAMA — DI LUAR AREA FORMULIR */}
+
+
+      <HomeFooter />
+
+    </>
   );
 }

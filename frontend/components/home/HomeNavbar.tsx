@@ -6,10 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 const NAV_LINKS = [
-  { label: "Home", href: "#beranda" },
-  { label: "Olympiad", href: "#kompetisi" },
-  { label: "Futsal Competition", href: "#kompetisi" },
-  { label: "About Us", href: "#about" },
+  { label: "Home", href: "/#beranda" },
+  { label: "Olympiad", href: "/register/science" },
+  { label: "Futsal Competition", href: "/register/futsal" },
+  { label: "About Us", href: "/#about" },
   { label: "Contact", href: "#kontak" },
 ];
 
@@ -95,20 +95,65 @@ export default function HomeNavbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
     setMenuOpen(false);
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      const el = document.querySelector(href);
-      if (el) {
-        // Navbar kini melayang di atas konten, jadi berhenti sedikit di bawahnya (kecuali menuju "Home").
-        const offset = href === "#beranda" ? 0 : ANCHOR_OFFSET;
-        const top = el.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top, behavior: "smooth" });
-      }
-    }
-  };
 
+    // Contact: menuju footer di halaman yang sedang dibuka.
+    if (href === "#kontak") {
+      e.preventDefault();
+
+      const footer = document.getElementById("kontak");
+
+      if (footer) {
+        const top =
+          footer.getBoundingClientRect().top +
+          window.scrollY -
+          ANCHOR_OFFSET;
+
+        window.scrollTo({
+          top: Math.max(0, top),
+          behavior: "smooth",
+        });
+      }
+
+      return;
+    }
+
+    // Anchor beranda: scroll hanya jika sedang berada di beranda.
+    if (href.startsWith("/#")) {
+      const targetId = href.substring(2);
+
+      if (window.location.pathname === "/") {
+        e.preventDefault();
+
+        const target = document.getElementById(targetId);
+
+        if (target) {
+          const offset = targetId === "beranda" ? 0 : ANCHOR_OFFSET;
+          const top =
+            target.getBoundingClientRect().top +
+            window.scrollY -
+            offset;
+
+          window.scrollTo({
+            top: Math.max(0, top),
+            behavior: "smooth",
+          });
+        }
+
+        return;
+      }
+
+      // Jika dari halaman lain, biarkan browser menuju beranda.
+      // Setelah itu hash akan menunjuk ke bagian yang sesuai.
+      return;
+    }
+
+    // Route biasa seperti /futsal atau /olympiad ditangani Next.js.
+  };
   return (
     // <header> tetap di alur halaman sebagai penjaga ruang (tinggi sama dengan bar normal),
     // sehingga layout di bawahnya tidak bergeser. Bar/pulau yang terlihat menempel (fixed) di dalamnya.
@@ -132,31 +177,34 @@ export default function HomeNavbar() {
               }`}
           >
             {/* ─── Brand Logo ─── */}
+
             <Link
-              href="#beranda"
-              onClick={(e) => handleNavClick(e, "#beranda")}
-              className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3"
-              aria-label="ARMASO 2027 – Beranda"
+              href="/"
+              onClick={() => setMenuOpen(false)}
+              className="armaso-navbar-brand group flex min-w-0 shrink-0 items-center gap-2 sm:gap-3"
+              aria-label="ARMASO 2027 – Kembali ke beranda"
             >
               <Image
                 src="/images/home/logo-armaso.png"
                 alt="Logo Sayap ARMASO"
                 width={150}
                 height={60}
-                className={`block h-auto shrink-0 object-contain transition-[width] duration-500 motion-reduce:transition-none ${scrolled
+                className={`armaso-navbar-logo block h-auto shrink-0 object-contain transition-[width,filter,transform] duration-300 ease-out motion-reduce:transition-none ${scrolled
                     ? "w-[84px] max-w-[150px] md:w-[104px]"
                     : "w-[110px] max-w-[150px] md:w-[150px]"
                   }`}
                 priority
               />
+
               <span
-                className={`font-poppins select-none whitespace-nowrap font-bold tracking-normal ${scrolled ? "text-sm md:hidden lg:inline lg:text-lg" : "text-sm md:text-xl"
+                className={`font-poppins select-none whitespace-nowrap font-bold tracking-normal transition-[text-shadow,color] duration-300 ${scrolled ? "text-sm md:hidden lg:inline lg:text-lg" : "text-sm md:text-xl"
                   }`}
                 style={{ color: "#eba037" }}
               >
                 ARMASO 2027
               </span>
             </Link>
+
 
             {/* ─── Desktop Navigation ─── */}
             <nav
@@ -207,8 +255,8 @@ export default function HomeNavbar() {
           <div id="home-mobile-menu" className="absolute inset-x-0 top-full md:hidden">
             <div
               className={`mx-auto px-6 py-4 shadow-2xl ${scrolled
-                  ? "mt-2 rounded-3xl border border-[#efbb52]/25 bg-black/80 backdrop-blur-xl"
-                  : "border-t border-[#efbb52]/30 bg-black"
+                ? "mt-2 rounded-3xl border border-[#efbb52]/25 bg-black/80 backdrop-blur-xl"
+                : "border-t border-[#efbb52]/30 bg-black"
                 }`}
               style={{ width: scrolled ? ISLAND_WIDTH : "100%" }}
             >
