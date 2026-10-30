@@ -294,7 +294,7 @@ export default function FutsalRegistrationPage() {
             <button
               type="button"
               style={secondaryButtonStyle}
-              onClick={() => window.open("/twibbon", "_blank", "noopener,noreferrer")}
+              onClick={() => window.open("https://drive.google.com/file/d/14VcVTzPsxzHjdhxtIKGmmYChlc8tYD-Y/view?usp=drive_link", "_blank", "noopener,noreferrer")}
             >
               Lihat twibbon ↗
             </button>
@@ -438,7 +438,7 @@ export default function FutsalRegistrationPage() {
                   <button
                     type="button"
                     className="futsal-btn-primary"
-                    onClick={goToUpload}
+                    onClick={goToPayment}
                     style={primaryButtonStyle}
                   >
                     LANJUT
@@ -685,7 +685,7 @@ export default function FutsalRegistrationPage() {
       {/* FOOTER UTAMA — DI LUAR AREA FORMULIR */}
 
 
-      <HomeFooter />
+
 
     </>
   );

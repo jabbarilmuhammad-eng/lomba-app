@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 
 const NAV_LINKS = [
-  { label: "Home", href: "/#beranda" },
+  { label: "Home", href: "#beranda" },
   { label: "Olympiad", href: "/register/science" },
   { label: "Futsal Competition", href: "/register/futsal" },
-  { label: "About Us", href: "/#about" },
+  { label: "About Us", href: "#about" },
   { label: "Contact", href: "#kontak" },
 ];
 
@@ -54,7 +55,20 @@ export default function HomeNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navContainerRef = useRef<HTMLElement>(null);
   const scrolled = useSyncExternalStore(subscribeScroll, getScrolled, getServerScrolled);
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHome = pathname === "/";
 
+  // Di halaman selain beranda, link anchor diarahkan ke beranda (mis. "#about" -> "/#about").
+  const resolveHref = (href: string) => {
+    // Link anchor
+    if (href.startsWith("#")) {
+      return isHome ? href : `/${href}`;
+    }
+
+    // Link halaman yang sudah menggunakan absolute path
+    return href;
+  };
   // Tutup menu saat klik di luar
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -95,65 +109,26 @@ export default function HomeNavbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleNavClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
-  ) => {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMenuOpen(false);
+    if (!href.startsWith("#")) return;
+    e.preventDefault();
 
-    // Contact: menuju footer di halaman yang sedang dibuka.
-    if (href === "#kontak") {
-      e.preventDefault();
-
-      const footer = document.getElementById("kontak");
-
-      if (footer) {
-        const top =
-          footer.getBoundingClientRect().top +
-          window.scrollY -
-          ANCHOR_OFFSET;
-
-        window.scrollTo({
-          top: Math.max(0, top),
-          behavior: "smooth",
-        });
-      }
-
-      return;
+    const el = document.querySelector(href);
+    if (el) {
+      // Section ada di halaman ini: gulir halus. Navbar melayang di atas konten,
+      // jadi berhenti sedikit di bawahnya (kecuali menuju "Home").
+      const offset = href === "#beranda" ? 0 : ANCHOR_OFFSET;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: "smooth" });
+    } else if (isHome) {
+      if (href === "#beranda") window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      // Section tidak ada di halaman ini: pindah ke beranda.
+      router.push(resolveHref(href));
     }
-
-    // Anchor beranda: scroll hanya jika sedang berada di beranda.
-    if (href.startsWith("/#")) {
-      const targetId = href.substring(2);
-
-      if (window.location.pathname === "/") {
-        e.preventDefault();
-
-        const target = document.getElementById(targetId);
-
-        if (target) {
-          const offset = targetId === "beranda" ? 0 : ANCHOR_OFFSET;
-          const top =
-            target.getBoundingClientRect().top +
-            window.scrollY -
-            offset;
-
-          window.scrollTo({
-            top: Math.max(0, top),
-            behavior: "smooth",
-          });
-        }
-
-        return;
-      }
-
-      // Jika dari halaman lain, biarkan browser menuju beranda.
-      // Setelah itu hash akan menunjuk ke bagian yang sesuai.
-      return;
-    }
-
-    // Route biasa seperti /futsal atau /olympiad ditangani Next.js.
   };
+
   return (
     // <header> tetap di alur halaman sebagai penjaga ruang (tinggi sama dengan bar normal),
     // sehingga layout di bawahnya tidak bergeser. Bar/pulau yang terlihat menempel (fixed) di dalamnya.
@@ -177,34 +152,31 @@ export default function HomeNavbar() {
               }`}
           >
             {/* ─── Brand Logo ─── */}
-
             <Link
-              href="/"
-              onClick={() => setMenuOpen(false)}
-              className="armaso-navbar-brand group flex min-w-0 shrink-0 items-center gap-2 sm:gap-3"
-              aria-label="ARMASO 2027 – Kembali ke beranda"
+              href={resolveHref("#beranda")}
+              onClick={(e) => handleNavClick(e, "#beranda")}
+              className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3"
+              aria-label="ARMASO 2027 – Beranda"
             >
               <Image
                 src="/images/home/logo-armaso.png"
                 alt="Logo Sayap ARMASO"
                 width={150}
                 height={60}
-                className={`armaso-navbar-logo block h-auto shrink-0 object-contain transition-[width,filter,transform] duration-300 ease-out motion-reduce:transition-none ${scrolled
-                    ? "w-[84px] max-w-[150px] md:w-[104px]"
-                    : "w-[110px] max-w-[150px] md:w-[150px]"
+                className={`block h-auto shrink-0 object-contain transition-[width] duration-500 motion-reduce:transition-none ${scrolled
+                  ? "w-[84px] max-w-[150px] md:w-[104px]"
+                  : "w-[110px] max-w-[150px] md:w-[150px]"
                   }`}
                 priority
               />
-
               <span
-                className={`font-poppins select-none whitespace-nowrap font-bold tracking-normal transition-[text-shadow,color] duration-300 ${scrolled ? "text-sm md:hidden lg:inline lg:text-lg" : "text-sm md:text-xl"
+                className={`font-poppins select-none whitespace-nowrap font-bold tracking-normal ${scrolled ? "text-sm md:hidden lg:inline lg:text-lg" : "text-sm md:text-xl"
                   }`}
                 style={{ color: "#eba037" }}
               >
                 ARMASO 2027
               </span>
             </Link>
-
 
             {/* ─── Desktop Navigation ─── */}
             <nav
@@ -215,7 +187,7 @@ export default function HomeNavbar() {
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.label}
-                  href={link.href}
+                  href={resolveHref(link.href)}
                   onClick={(e) => handleNavClick(e, link.href)}
                   className={`font-poppins whitespace-nowrap font-bold text-white transition-colors duration-200 hover:text-[#eba037] ${scrolled ? "text-sm" : "text-sm lg:text-base"
                     }`}
@@ -264,7 +236,7 @@ export default function HomeNavbar() {
                 {NAV_LINKS.map((link) => (
                   <a
                     key={link.label}
-                    href={link.href}
+                    href={resolveHref(link.href)}
                     onClick={(e) => handleNavClick(e, link.href)}
                     className="font-poppins block border-b border-white/10 py-3 text-base font-bold text-white transition-colors last:border-b-0 hover:text-[#eba037]"
                   >
@@ -272,13 +244,7 @@ export default function HomeNavbar() {
                   </a>
                 ))}
               </nav>
-              <Link
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="font-poppins mt-4 block w-full rounded-full bg-[#ffb206] py-2.5 text-center text-sm font-black text-black shadow-md transition-all hover:brightness-110 active:scale-95"
-              >
-                DAFTAR
-              </Link>
+
             </div>
           </div>
         )}

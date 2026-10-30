@@ -1,4 +1,6 @@
-import Navbar from "@/components/home/HomeNavbar";
+
+import HomeNavbar from "@/components/home/HomeNavbar";
+import HomeFooter from "@/components/home/HomeFooter";
 
 export default function RegisterLayout({
   children,
@@ -7,8 +9,9 @@ export default function RegisterLayout({
 }) {
   return (
     <>
-      <Navbar />
+      <HomeNavbar />
       {children}
+      <HomeFooter />
     </>
   );
 }

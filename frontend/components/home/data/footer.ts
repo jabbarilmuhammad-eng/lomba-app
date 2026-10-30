@@ -3,8 +3,8 @@ export const footerContacts = [
     {
         name: "AHMAD FAIRUZ ZAQI MUMTAZ",
         role: "Head of Commitee",
-        phone: "+62 821-4753-9006",
-        whatsapp: "https://wa.me/6282147539006",
+        phone: "+62 821-4753-9005",
+        whatsapp: "https://wa.me/6282147539005",
         avatar: "👨🏻‍💼",
     },
     {
