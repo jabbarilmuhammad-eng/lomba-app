@@ -116,17 +116,18 @@ const linkButtonStyle: CSSProperties = {
 
 const panelStyle: CSSProperties = {
     width: "100%",
-    maxWidth: 640,
+    maxWidth: 850,
     alignSelf: "center",
     boxSizing: "border-box",
     color: "#fff",
-    background: "rgba(0,0,0,.76)",
-    border: "5px solid #a77d2d",
-    borderRadius: 42,
-    padding: "clamp(18px, 2.5vw, 28px) 22px 26px",
+    background: "rgba(0,0,0,.65)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
+    border: "2px solid #ffb400",
+    borderRadius: 28,
+    padding: "clamp(20px, 3vw, 34px) 24px 40px",
     boxShadow: "0 12px 40px rgba(0,0,0,.3)",
 };
-
 
 export default function IndividualRegistrationPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -336,28 +337,26 @@ export default function IndividualRegistrationPage() {
                     </strong>
 
                     <a
-                        href=""
-                        onClick={(event) => event.preventDefault()}
-                        aria-disabled="true"
-                        title="Tautan guidebook belum tersedia"
+                        href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=drive_link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Guidebook"
                         style={{
                             ...linkButtonStyle,
                             textDecoration: "none",
-                            opacity: 0.7,
                         }}
                     >
                         Lihat guidebook ↗
                     </a>
 
                     <a
-                        href=""
-                        onClick={(event) => event.preventDefault()}
-                        aria-disabled="true"
-                        title="Tautan twibbon belum tersedia"
+                        href="https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=drive_link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Twibbon"
                         style={{
                             ...linkButtonStyle,
                             textDecoration: "none",
-                            opacity: 0.7,
                         }}
                     >
                         Lihat twibbon ↗

@@ -38,9 +38,9 @@ export const footerSocials = [
     },
     {
         name: "TikTok",
-        username: "@arrahmat.official",
+        username: "armaso_official",
         icon: "/images/home/avatar-5.png",
-        href: "https://www.tiktok.com/@arrahmat.official",
+        href: "https://www.tiktok.com/@armaso_2026",
     },
 ];
 

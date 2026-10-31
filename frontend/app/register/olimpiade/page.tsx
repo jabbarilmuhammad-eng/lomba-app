@@ -6,7 +6,7 @@ import OlimpiadePortal from "@/components/register/OlimpiadePortal";
 export const metadata: Metadata = {
   title: "Pendaftaran Olimpiade Sains | ARMASO 2027",
   description:
-    "Pilih skema pendaftaran Olimpiade Sains ARMASO 2027: Individu (mandiri) atau Kolektif (rombongan sekolah).",
+    "Pendaftaran Olimpiade Sains ARMASO 2027: Individu (mandiri) atau Kolektif (rombongan sekolah).",
 };
 
 export default function OlimpiadeRegisterPage() {

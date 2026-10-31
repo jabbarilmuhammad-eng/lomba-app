@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+
+import { Fragment, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
 import HomeNavbar from "@/components/home/HomeNavbar";
 import HomeFooter from "@/components/home/HomeFooter";
+
 
 type Step = 1 | 2 | 3 | 4;
 type Subject = "Matematika" | "Sosial" | "IPA";
@@ -39,7 +41,9 @@ const panelStyle: CSSProperties = {
   width: "100%",
   boxSizing: "border-box",
   color: "#fff",
-  background: "rgba(0,0,0,.88)",
+  background: "rgba(0,0,0,.65)",
+  backdropFilter: "blur(4px)",
+  WebkitBackdropFilter: "blur(4px)",
   border: "2px solid #ffb400",
   borderRadius: 28,
   padding: "clamp(20px, 3vw, 34px) 24px 60px",
@@ -47,10 +51,10 @@ const panelStyle: CSSProperties = {
 };
 
 const sectionStyle: CSSProperties = {
-  border: "2px solid #ffb400",
-  borderRadius: 18,
-  padding: "clamp(14px, 2vw, 22px)",
-  background: "rgba(0,0,0,.9)",
+  border: "none",
+  borderRadius: 0,
+  padding: 0,
+  background: "transparent",
   boxSizing: "border-box",
 };
 
@@ -225,7 +229,7 @@ export default function KolektifRegistrationPage() {
   return (
     <>
       <HomeNavbar />
-      <main className="relative z-0 -mt-[clamp(64px,5vw,80px)]">
+      <main className="relative z-0 -mt-[clamp(64px,5vw,80px)]" style={{ paddingTop: "32px" }}>
         <Image
           src="/images/home/bg-form-olim-kolektif.png"
           alt=""
@@ -308,20 +312,31 @@ export default function KolektifRegistrationPage() {
               Pastikan data yang kamu isi sudah sesuai
             </strong>
             <a
-              href=""
-              onClick={(event) => event.preventDefault()}
-              aria-disabled="true"
-              title="Tautan guidebook belum tersedia"
-              style={{ ...secondaryButtonStyle, fontSize: 10, textDecoration: "none", opacity: 0.65 }}
+              href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=drive_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Guidebook"
+              style={{
+                ...secondaryButtonStyle,
+                fontSize: 10,
+                textDecoration: "none",
+                opacity: 1,
+              }}
             >
               Lihat guidebook ↗
             </a>
+
             <a
-              href=""
-              onClick={(event) => event.preventDefault()}
-              aria-disabled="true"
-              title="Tautan twibbon belum tersedia"
-              style={{ ...secondaryButtonStyle, fontSize: 10, textDecoration: "none", opacity: 0.65 }}
+              href="https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Twibbon"
+              style={{
+                ...secondaryButtonStyle,
+                fontSize: 10,
+                textDecoration: "none",
+                opacity: 1,
+              }}
             >
               Lihat twibbon ↗
             </a>
@@ -331,24 +346,25 @@ export default function KolektifRegistrationPage() {
             <nav
               aria-label="Progress pendaftaran"
               style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "center",
+                display: "grid",
+                gridTemplateColumns: "1fr 24px 1fr 24px 1fr 24px 1fr",
+                alignItems: "start",
                 maxWidth: 650,
+                width: "100%",
                 margin: "4px auto 28px",
               }}
             >
               {steps.map((item, index) => (
-                <div
-                  key={item.number}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flex: index < steps.length - 1 ? 1 : "0 0 auto",
-                    minWidth: 0,
-                  }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <Fragment key={item.number}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 8,
+                      minWidth: 0,
+                    }}
+                  >
                     <div
                       aria-current={step === item.number ? "step" : undefined}
                       style={{
@@ -367,6 +383,7 @@ export default function KolektifRegistrationPage() {
                     >
                       {item.number}
                     </div>
+
                     <span
                       style={{
                         border: "1.5px solid #ffb400",
@@ -383,19 +400,20 @@ export default function KolektifRegistrationPage() {
                       {item.label}
                     </span>
                   </div>
+
                   {index < steps.length - 1 && (
                     <div
+                      key={`line-${item.number}`}
                       aria-hidden="true"
                       style={{
                         height: 1,
+                        width: "100%",
                         background: "#ffb400",
-                        flex: 1,
-                        minWidth: 8,
-                        margin: "0 5px 28px",
+                        marginTop: "clamp(23px, 3vw, 31px)",
                       }}
                     />
                   )}
-                </div>
+                </Fragment>
               ))}
             </nav>
 
@@ -460,10 +478,16 @@ export default function KolektifRegistrationPage() {
                       )}
                     </div>
                     <div style={{ height: 1, background: "rgba(255,180,0,.45)", marginBottom: 14 }} />
-                    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.7fr) minmax(150px, .8fr)", gap: 12 }}>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "minmax(0, 2.2fr) minmax(0, 1fr)",
+                        gap: 12,
+                      }}
+                    >
                       <div>
                         <label htmlFor={`participant-name-${participant.id}`} style={labelStyle}>Nama Lengkap Siswa *</label>
-                        <input id={`participant-name-${participant.id}`} value={participant.name} onChange={(event) => updateParticipant(participant.id, "name", event.target.value)} placeholder="Nama Lengkap Siswa" required style={inputStyle} />
+                        <input id={`participant-name-${participant.id}`} value={participant.name} onChange={(event) => updateParticipant(participant.id, "name", event.target.value)} placeholder="Nama Lengkap Siswa" required style={{ ...inputStyle, height: 48 }} />
                         <small style={{ display: "block", color: "#aaa", marginTop: 6, fontSize: 9 }}>Sesuai nama resmi peserta.</small>
                       </div>
                       <div>
@@ -479,7 +503,20 @@ export default function KolektifRegistrationPage() {
                 ))}
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <button type="button" onClick={addParticipant} disabled={participants.length >= MAX_PARTICIPANTS} className="futsal-btn-secondary" style={{ ...secondaryButtonStyle, opacity: participants.length >= MAX_PARTICIPANTS ? 0.45 : 1, cursor: participants.length >= MAX_PARTICIPANTS ? "not-allowed" : "pointer" }}>
+                  <button type="button" onClick={addParticipant} disabled={participants.length >= MAX_PARTICIPANTS} className="futsal-btn-secondary" style={{
+                    ...secondaryButtonStyle,
+                    padding: "8px 12px",
+                    fontSize: 11,
+                    borderRadius: 10,
+                    width: "fit-content",
+                    maxWidth: "100%",
+                    opacity:
+                      participants.length >= MAX_PARTICIPANTS ? 0.45 : 1,
+                    cursor:
+                      participants.length >= MAX_PARTICIPANTS
+                        ? "not-allowed"
+                        : "pointer",
+                  }}>
                     + TAMBAH PESERTA ({participants.length}/{MAX_PARTICIPANTS})
                   </button>
                   <span style={{ color: "#ddd", fontSize: 10 }}>
@@ -522,7 +559,15 @@ export default function KolektifRegistrationPage() {
                       : `Daftarkan ${MAX_PAID_STUDENTS - registeredCount} peserta lagi untuk membuka 1 slot bonus gratis.`}
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(0, 2.2fr) minmax(0, 1fr)",
+                      gap: 12,
+                      alignItems: "start",
+                    }}
+                  >
+
                     {[
                       ["TOTAL PESERTA", `${paymentSummary.registered} SISWA`],
                       ["PESERTA BERBAYAR", `${paymentSummary.paid} SISWA`],
@@ -598,6 +643,6 @@ export default function KolektifRegistrationPage() {
         </div>
       </main>
 
-    </>
+    </ >
   );
 }

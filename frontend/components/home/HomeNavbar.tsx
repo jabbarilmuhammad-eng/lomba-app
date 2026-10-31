@@ -223,31 +223,45 @@ export default function HomeNavbar() {
         </div>
 
         {/* ─── Mobile Menu Panel (di luar pulau, supaya blurnya sendiri tetap bekerja) ─── */}
+
+        {/* ─── Mobile Menu Panel: Dynamic Island ─── */}
         {menuOpen && (
-          <div id="home-mobile-menu" className="absolute inset-x-0 top-full md:hidden">
+          <div
+            id="home-mobile-menu"
+            className="absolute inset-x-0 top-full md:hidden"
+          >
             <div
-              className={`mx-auto px-6 py-4 shadow-2xl ${scrolled
-                ? "mt-2 rounded-3xl border border-[#efbb52]/25 bg-black/80 backdrop-blur-xl"
-                : "border-t border-[#efbb52]/30 bg-black"
-                }`}
-              style={{ width: scrolled ? ISLAND_WIDTH : "100%" }}
+              className="mx-auto mt-2 overflow-hidden px-6 py-4 shadow-2xl"
+              style={{
+                width: ISLAND_WIDTH,
+                borderRadius: 32,
+                background: "rgba(10, 4, 0, 0.62)",
+                backdropFilter: "blur(16px) saturate(140%)",
+                WebkitBackdropFilter: "blur(16px) saturate(140%)",
+                border: "1px solid rgba(239, 187, 82, 0.28)",
+                boxShadow:
+                  "0 10px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+              }}
             >
-              <nav className="flex flex-col" aria-label="Navigasi mobile beranda">
+              <nav
+                className="flex flex-col"
+                aria-label="Navigasi mobile beranda"
+              >
                 {NAV_LINKS.map((link) => (
                   <a
                     key={link.label}
                     href={resolveHref(link.href)}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className="font-poppins block border-b border-white/10 py-3 text-base font-bold text-white transition-colors last:border-b-0 hover:text-[#eba037]"
+                    className="font-poppins block border-b border-white/10 py-3 text-center text-base font-bold text-white transition-colors last:border-b-0 hover:text-[#eba037]"
                   >
                     {link.label}
                   </a>
                 ))}
               </nav>
-
             </div>
           </div>
         )}
+
       </div>
     </header>
   );

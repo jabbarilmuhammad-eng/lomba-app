@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import HomeFooter from "@/components/home/HomeFooter";
 import type { CSSProperties } from "react";
 
 type Step = 1 | 2 | 3;
@@ -34,9 +34,12 @@ export default function FutsalRegistrationPage() {
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -47,7 +50,12 @@ export default function FutsalRegistrationPage() {
       return;
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+    ];
+
     if (!allowedTypes.includes(file.type)) {
       alert("Format file harus JPG, PNG, atau PDF.");
       event.target.value = "";
@@ -60,7 +68,9 @@ export default function FutsalRegistrationPage() {
 
   const handleRemoveFile = () => {
     setPaymentProof(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const goToPayment = () => {
@@ -68,14 +78,17 @@ export default function FutsalRegistrationPage() {
       alert("Asal sekolah wajib diisi!");
       return;
     }
+
     if (!officialName.trim()) {
       alert("Nama guru pembina / official wajib diisi!");
       return;
     }
+
     if (!officialPhone.trim()) {
       alert("Nomor WhatsApp official / guru pembina wajib diisi!");
       return;
     }
+
     setStep(2);
     scrollToTop();
   };
@@ -90,10 +103,16 @@ export default function FutsalRegistrationPage() {
     scrollToTop();
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
-    if (!school.trim() || !officialName.trim() || !officialPhone.trim()) {
+    if (
+      !school.trim() ||
+      !officialName.trim() ||
+      !officialPhone.trim()
+    ) {
       alert("Pastikan semua data tim sudah diisi dengan benar.");
       setStep(1);
       return;
@@ -107,49 +126,66 @@ export default function FutsalRegistrationPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/registrations/futsal`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          teamName: `Tim ${school.trim()}`,
-          school: school.trim(),
-          members: [
-            `${officialName.trim()} (Official - ${officialPhone.trim()})`,
-          ],
-        }),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/registrations/futsal`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teamName: `Tim ${school.trim()}`,
+            school: school.trim(),
+            members: [
+              `${officialName.trim()} (Official - ${officialPhone.trim()})`,
+            ],
+          }),
+        }
+      );
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.registrationId) {
-        throw new Error(data.message || "Pendaftaran gagal dikirim!");
+        throw new Error(
+          data.message || "Pendaftaran gagal dikirim!"
+        );
       }
 
       const formData = new FormData();
       formData.append("amount", String(REGISTRATION_FEE));
-      formData.append("registrationId", String(data.registrationId));
+      formData.append(
+        "registrationId",
+        String(data.registrationId)
+      );
       formData.append("proof", paymentProof);
 
-      const paymentResponse = await fetch(`${API_BASE_URL}/payments`, {
-        method: "POST",
-        body: formData,
-      });
+      const paymentResponse = await fetch(
+        `${API_BASE_URL}/payments`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!paymentResponse.ok) {
         alert(
           "Data pendaftaran berhasil disimpan, tetapi bukti pembayaran gagal diunggah. Silakan coba kembali dari halaman pembayaran."
         );
+
         router.push(
-          `/payment?registrationId=${encodeURIComponent(String(data.registrationId))}&success=false`
+          `/payment?registrationId=${encodeURIComponent(
+            String(data.registrationId)
+          )}&success=false`
         );
         return;
       }
 
       router.push(
-        `/payment?registrationId=${encodeURIComponent(String(data.registrationId))}&success=true`
+        `/payment?registrationId=${encodeURIComponent(
+          String(data.registrationId)
+        )}&success=true`
       );
     } catch (error) {
       console.error(error);
+
       alert(
         error instanceof Error
           ? error.message
@@ -160,8 +196,10 @@ export default function FutsalRegistrationPage() {
     }
   };
 
-  const panelStyle: React.CSSProperties = {
-    background: "rgba(0, 0, 0, 0.88)",
+  const panelStyle: CSSProperties = {
+    background: "rgba(0,0,0,.65)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
     border: "2px solid #ffb400",
     borderRadius: 24,
     padding: "clamp(18px, 3vw, 34px)",
@@ -171,15 +209,15 @@ export default function FutsalRegistrationPage() {
     boxShadow: "0 12px 40px rgba(0,0,0,.3)",
   };
 
-  const sectionStyle: React.CSSProperties = {
-    border: "2px solid #ffb400",
-    borderRadius: 18,
-    padding: "22px",
-    background: "rgba(0,0,0,.9)",
+  const sectionStyle: CSSProperties = {
+    border: "none",
+    borderRadius: 0,
+    padding: 0,
+    background: "transparent",
     boxSizing: "border-box",
   };
 
-  const labelStyle: React.CSSProperties = {
+  const labelStyle: CSSProperties = {
     display: "block",
     color: "#ffb400",
     fontSize: 12,
@@ -188,7 +226,7 @@ export default function FutsalRegistrationPage() {
     textTransform: "uppercase",
   };
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle: CSSProperties = {
     width: "100%",
     boxSizing: "border-box",
     background: "#050505",
@@ -215,15 +253,266 @@ export default function FutsalRegistrationPage() {
   const secondaryButtonStyle: CSSProperties = {
     border: "1px solid #ffb400",
     borderRadius: 14,
-    background: "#080808",
+    background: "rgba(0,0,0,.65)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
     color: "#ffb400",
     padding: "13px 22px",
     fontWeight: 800,
     cursor: "pointer",
   };
 
+  // Tombol khusus Guidebook dan Twibbon agar tidak terlalu besar.
+  const resourceButtonStyle: CSSProperties = {
+    border: "1px solid #ffb400",
+    borderRadius: 12,
+    background: "#080808",
+    color: "#ffb400",
+    padding: "8px 12px",
+    fontSize: 10,
+    fontWeight: 900,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  };
+
   return (
     <>
+      <style jsx>{`
+        .futsal-container {
+          width: 100%;
+          max-width: 1010px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 38px;
+        }
+
+        .futsal-notice {
+          background: #000;
+          border: 1.5px solid #ffb400;
+          border-radius: 28px;
+          padding: 24px 28px;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 18px;
+        }
+
+        .futsal-notice-text {
+          color: #ffb400;
+          font-size: 13px;
+          flex: 1 1 240px;
+        }
+          .futsal-resource-buttons {
+         display: flex;
+         align-items: center;
+         flex-wrap: wrap;
+         gap: 10px;
+         margin-left: auto;
+        }
+
+        .futsal-progress {
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          gap: 0;
+          margin: 4px auto 34px;
+          max-width: 470px;
+          width: 100%;
+        }
+
+        .futsal-step-number {
+          width: 52px;
+          height: 64px;
+          border: 2px solid #ffb400;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          font-weight: 900;
+          flex-shrink: 0;
+        }
+
+        .futsal-step-label {
+          border: 2px solid #ffb400;
+          color: #ffb400;
+          background: #000;
+          border-radius: 14px;
+          padding: 6px 12px;
+          font-size: 8px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .futsal-step-line {
+          height: 1px;
+          background: #ffb400;
+          flex: 1;
+          min-width: 22px;
+          margin: 0 8px 31px;
+        }
+
+        .futsal-form {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .futsal-form-actions {
+          border-top: 1px solid #b98200;
+          padding-top: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .futsal-upload-area {
+          min-height: 280px;
+          border: 1.5px dashed #ffb400;
+          border-radius: 22px;
+          background: rgba(90, 31, 0, .92);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          gap: 18px;
+          padding: 24px;
+          cursor: pointer;
+          box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+          .futsal-container {
+            gap: 18px;
+          }
+
+          .futsal-notice {
+            border-radius: 16px;
+            padding: 14px;
+            gap: 10px;
+          }
+
+          .futsal-notice-text {
+            flex: 1 1 calc(100% - 42px);
+            font-size: 11px;
+            line-height: 1.5;
+          }
+
+          .futsal-resource-buttons {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .futsal-panel {
+            border-radius: 18px !important;
+            padding: 16px 14px 24px !important;
+          }
+
+          .futsal-section {
+            border-radius: 13px !important;
+            padding: 14px !important;
+          }
+
+          .futsal-progress {
+            max-width: 100%;
+            margin: 4px auto 24px;
+          }
+
+          .futsal-step-number {
+            width: 40px;
+            height: 48px;
+            border-radius: 13px;
+            font-size: 13px;
+          }
+
+          .futsal-step-label {
+            border-radius: 9px;
+            padding: 5px 7px;
+            font-size: 6px;
+            border-width: 1px;
+          }
+
+          .futsal-step-line {
+            min-width: 8px;
+            margin: 0 4px 25px;
+          }
+
+          .futsal-input {
+            padding: 12px 13px !important;
+            font-size: 13px !important;
+          }
+
+          .futsal-label {
+            font-size: 11px !important;
+            margin-bottom: 9px !important;
+          }
+
+          .futsal-primary-button {
+            padding: 15px 16px !important;
+            font-size: 16px !important;
+            border-radius: 16px !important;
+          }
+
+          .futsal-secondary-button {
+            padding: 11px 16px !important;
+            font-size: 12px !important;
+            border-radius: 12px !important;
+          }
+
+          .futsal-upload-area {
+            min-height: 210px;
+            border-radius: 16px;
+            padding: 16px 12px;
+            gap: 12px;
+          }
+
+          .futsal-upload-title {
+            font-size: 13px !important;
+          }
+
+          .futsal-upload-icon {
+            font-size: 38px !important;
+          }
+
+          .futsal-payment-info {
+            font-size: 12px !important;
+            overflow-wrap: anywhere;
+          }
+
+          .futsal-total-box {
+            padding: 12px !important;
+          }
+
+          .futsal-footer {
+            margin-top: 20px !important;
+            padding-top: 14px !important;
+            font-size: 10px !important;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .futsal-step-number {
+            width: 35px;
+            height: 43px;
+          }
+
+          .futsal-step-label {
+            padding: 4px 5px;
+            font-size: 5.5px;
+          }
+
+          .futsal-step-line {
+            min-width: 5px;
+            margin-left: 3px;
+            margin-right: 3px;
+          }
+        }
+      `}</style>
+
       <main
         style={{
           position: "relative",
@@ -239,31 +528,11 @@ export default function FutsalRegistrationPage() {
           backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
-          backgroundAttachment: "fixed",
+
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 1010,
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 38,
-          }}
-        >
-          <div
-            style={{
-              background: "#000",
-              border: "1.5px solid #ffb400",
-              borderRadius: 28,
-              padding: "24px 28px",
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 18,
-            }}
-          >
+        <div className="futsal-container">
+          <div className="futsal-notice">
             <span
               aria-hidden="true"
               style={{
@@ -281,36 +550,46 @@ export default function FutsalRegistrationPage() {
             >
               !
             </span>
-            <strong style={{ color: "#ffb400", fontSize: 13, flex: "1 1 240px" }}>
+
+            <strong className="futsal-notice-text">
               Pastikan data yang kamu isi sudah sesuai
             </strong>
-            <button
-              type="button"
-              style={secondaryButtonStyle}
-              onClick={() => window.open("/guidebook", "_blank", "noopener,noreferrer")}
-            >
-              Lihat guidebook ↗
-            </button>
-            <button
-              type="button"
-              style={secondaryButtonStyle}
-              onClick={() => window.open("https://drive.google.com/file/d/14VcVTzPsxzHjdhxtIKGmmYChlc8tYD-Y/view?usp=drive_link", "_blank", "noopener,noreferrer")}
-            >
-              Lihat twibbon ↗
-            </button>
+
+            <div className="futsal-resource-buttons">
+              <button
+                type="button"
+                style={resourceButtonStyle}
+                onClick={() =>
+                  window.open(
+                    "https://drive.google.com/file/d/1CCw9lNwLfiDpU9ItVvk72xeD3igkh3dj/view?usp=drive_link",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+              >
+                Lihat guidebook ↗
+              </button>
+
+              <button
+                type="button"
+                style={resourceButtonStyle}
+                onClick={() =>
+                  window.open(
+                    "https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=drive_link",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+              >
+                Lihat twibbon ↗
+              </button>
+            </div>
           </div>
 
-          <section style={panelStyle}>
+          <section className="futsal-panel" style={panelStyle}>
             <nav
               aria-label="Progress pendaftaran"
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "center",
-                gap: 0,
-                margin: "4px auto 34px",
-                maxWidth: 470,
-              }}
+              className="futsal-progress"
             >
               {steps.map((item, index) => (
                 <div
@@ -319,52 +598,41 @@ export default function FutsalRegistrationPage() {
                     display: "flex",
                     alignItems: "center",
                     flex: index < steps.length - 1 ? 1 : "0 0 auto",
+                    minWidth: 0,
                   }}
                 >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 9,
+                    }}
+                  >
                     <div
-                      aria-current={step === item.number ? "step" : undefined}
+                      aria-current={
+                        step === item.number ? "step" : undefined
+                      }
+                      className="futsal-step-number"
                       style={{
-                        width: 52,
-                        height: 64,
-                        border: "2px solid #ffb400",
-                        borderRadius: 20,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: step === item.number ? "#ffb400" : "#000",
-                        color: step === item.number ? "#000" : "#ffb400",
-                        fontSize: 15,
-                        fontWeight: 900,
+                        background:
+                          step === item.number ? "#ffb400" : "#000",
+                        color:
+                          step === item.number ? "#000" : "#ffb400",
                       }}
                     >
                       {item.number}
                     </div>
-                    <span
-                      style={{
-                        border: "2px solid #ffb400",
-                        color: "#ffb400",
-                        background: "#000",
-                        borderRadius: 14,
-                        padding: "6px 12px",
-                        fontSize: 8,
-                        fontWeight: 900,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+
+                    <span className="futsal-step-label">
                       {item.label}
                     </span>
                   </div>
+
                   {index < steps.length - 1 && (
                     <div
                       aria-hidden="true"
-                      style={{
-                        height: 1,
-                        background: "#ffb400",
-                        flex: 1,
-                        minWidth: 22,
-                        margin: "0 8px 31px",
-                      }}
+                      className="futsal-step-line"
                     />
                   )}
                 </div>
@@ -377,67 +645,113 @@ export default function FutsalRegistrationPage() {
                   event.preventDefault();
                   goToPayment();
                 }}
-                style={{ display: "flex", flexDirection: "column", gap: 18 }}
+                className="futsal-form"
               >
-                <div style={sectionStyle}>
-                  <label htmlFor="officialName" style={labelStyle}>
+                <div className="futsal-section" style={sectionStyle}>
+                  <label
+                    htmlFor="officialName"
+                    className="futsal-label"
+                    style={labelStyle}
+                  >
                     Nama Guru Pembina / Official
                   </label>
+
                   <input
                     id="officialName"
                     value={officialName}
-                    onChange={(event) => setOfficialName(event.target.value)}
+                    onChange={(event) =>
+                      setOfficialName(event.target.value)
+                    }
                     placeholder="Nama Guru Pembina"
                     autoComplete="name"
                     required
+                    className="futsal-input"
                     style={inputStyle}
                   />
-                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
+
+                  <small
+                    style={{
+                      display: "block",
+                      color: "#cfcfcf",
+                      marginTop: 10,
+                    }}
+                  >
                     Isi dengan nama guru pembina atau official tim.
                   </small>
                 </div>
 
-                <div style={sectionStyle}>
-                  <label htmlFor="officialPhone" style={labelStyle}>
+                <div className="futsal-section" style={sectionStyle}>
+                  <label
+                    htmlFor="officialPhone"
+                    className="futsal-label"
+                    style={labelStyle}
+                  >
                     Nomor WhatsApp Official/Guru Pembina
                   </label>
+
                   <input
                     id="officialPhone"
                     type="tel"
                     value={officialPhone}
-                    onChange={(event) => setOfficialPhone(event.target.value)}
+                    onChange={(event) =>
+                      setOfficialPhone(event.target.value)
+                    }
                     placeholder="Nomor WhatsApp"
                     autoComplete="tel"
                     required
+                    className="futsal-input"
                     style={inputStyle}
                   />
-                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
+
+                  <small
+                    style={{
+                      display: "block",
+                      color: "#cfcfcf",
+                      marginTop: 10,
+                    }}
+                  >
                     Gunakan nomor WhatsApp aktif untuk koordinasi panitia.
                   </small>
                 </div>
 
-                <div style={sectionStyle}>
-                  <label htmlFor="school" style={labelStyle}>
+                <div className="futsal-section" style={sectionStyle}>
+                  <label
+                    htmlFor="school"
+                    className="futsal-label"
+                    style={labelStyle}
+                  >
                     Asal Sekolah
                   </label>
+
                   <input
                     id="school"
                     value={school}
-                    onChange={(event) => setSchool(event.target.value)}
+                    onChange={(event) =>
+                      setSchool(event.target.value)
+                    }
                     placeholder="Nama Sekolah"
                     autoComplete="organization"
                     required
+                    className="futsal-input"
                     style={inputStyle}
                   />
-                  <small style={{ display: "block", color: "#cfcfcf", marginTop: 10 }}>
-                    Tuliskan nama lengkap sekolah serta kota atau kabupaten delegasi tim.
+
+                  <small
+                    style={{
+                      display: "block",
+                      color: "#cfcfcf",
+                      marginTop: 10,
+                    }}
+                  >
+                    Tuliskan nama lengkap sekolah serta kota atau
+                    kabupaten delegasi tim.
                   </small>
                 </div>
 
-                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14 }}>
+                <div className="futsal-form-actions">
                   <button
                     type="button"
-                    className="futsal-btn-primary"
+                    className="futsal-btn-primary futsal-primary-button"
                     onClick={goToPayment}
                     style={primaryButtonStyle}
                   >
@@ -448,8 +762,17 @@ export default function FutsalRegistrationPage() {
             )}
 
             {step === 2 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-                <section style={sectionStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 28,
+                }}
+              >
+                <section
+                  className="futsal-section"
+                  style={sectionStyle}
+                >
                   <div
                     style={{
                       display: "flex",
@@ -461,10 +784,14 @@ export default function FutsalRegistrationPage() {
                       fontWeight: 900,
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</span>
+                    <span style={{ fontSize: 14 }}>
+                      ♙ &nbsp; REKENING RESMI PANITIA ARMASO:
+                    </span>
                     <span>Rp150.000 (1 Tim)</span>
                   </div>
+
                   <div
+                    className="futsal-payment-info"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -476,33 +803,99 @@ export default function FutsalRegistrationPage() {
                       fontSize: 14,
                     }}
                   >
-                    <span>Bank Syariah Indonesia (BSI): 3846-01-045309-53-9</span>
-                    <strong>Panitia Armaso 2027 (Rafi Aziz)</strong>
+                    <span>
+                      Bank Syariah Indonesia (BSI):
+                      3846-01-045309-53-9
+                    </span>
+                    <strong>
+                      Panitia Armaso 2027 (Rafi Aziz)
+                    </strong>
                   </div>
                 </section>
 
-                <section style={sectionStyle}>
-                  <h2 style={{ color: "#ffb400", fontSize: 14, margin: "0 0 22px", fontWeight: 900 }}>
+                <section
+                  className="futsal-section"
+                  style={sectionStyle}
+                >
+                  <h2
+                    style={{
+                      color: "#ffb400",
+                      fontSize: 14,
+                      margin: "0 0 22px",
+                      fontWeight: 900,
+                    }}
+                  >
                     ♙ &nbsp; TOTAL PEMBAYARAN
                   </h2>
+
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
                       gap: 14,
                       marginBottom: 22,
                     }}
                   >
-                    <div style={{ border: "1px solid #ffb400", borderRadius: 14, padding: 16 }}>
-                      <strong style={{ display: "block", color: "#ffb400", fontSize: 13 }}>TOTAL TIM</strong>
-                      <span style={{ display: "block", marginTop: 6, fontSize: 12 }}>1 TIM</span>
+                    <div
+                      className="futsal-total-box"
+                      style={{
+                        border: "1px solid #ffb400",
+                        borderRadius: 14,
+                        padding: 16,
+                      }}
+                    >
+                      <strong
+                        style={{
+                          display: "block",
+                          color: "#ffb400",
+                          fontSize: 13,
+                        }}
+                      >
+                        TOTAL TIM
+                      </strong>
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: 6,
+                          fontSize: 12,
+                        }}
+                      >
+                        1 TIM
+                      </span>
                     </div>
-                    <div style={{ border: "1px solid #ffb400", borderRadius: 14, padding: 16 }}>
-                      <strong style={{ display: "block", color: "#ffb400", fontSize: 10 }}>TARIF PER TIM</strong>
-                      <span style={{ display: "block", marginTop: 6, fontWeight: 900 }}>{formatRupiah(REGISTRATION_FEE)}</span>
+
+                    <div
+                      className="futsal-total-box"
+                      style={{
+                        border: "1px solid #ffb400",
+                        borderRadius: 14,
+                        padding: 16,
+                      }}
+                    >
+                      <strong
+                        style={{
+                          display: "block",
+                          color: "#ffb400",
+                          fontSize: 10,
+                        }}
+                      >
+                        TARIF PER TIM
+                      </strong>
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: 6,
+                          fontWeight: 900,
+                        }}
+                      >
+                        {formatRupiah(REGISTRATION_FEE)}
+                      </span>
                     </div>
                   </div>
+
                   <div
+                    className="futsal-total-box"
                     style={{
                       border: "1px solid #ffb400",
                       borderRadius: 14,
@@ -515,25 +908,43 @@ export default function FutsalRegistrationPage() {
                     }}
                   >
                     <div>
-                      <strong style={{ color: "#ffb400" }}>TOTAL PEMBAYARAN KESELURUHAN</strong>
-                      <small style={{ display: "block", marginTop: 8 }}>1 tim × {formatRupiah(REGISTRATION_FEE)}</small>
+                      <strong style={{ color: "#ffb400" }}>
+                        TOTAL PEMBAYARAN KESELURUHAN
+                      </strong>
+                      <small
+                        style={{
+                          display: "block",
+                          marginTop: 8,
+                        }}
+                      >
+                        1 tim × {formatRupiah(REGISTRATION_FEE)}
+                      </small>
                     </div>
-                    <strong style={{ color: "#ffb400", fontSize: 17 }}>{formatRupiah(REGISTRATION_FEE)}</strong>
+
+                    <strong
+                      style={{
+                        color: "#ffb400",
+                        fontSize: 17,
+                      }}
+                    >
+                      {formatRupiah(REGISTRATION_FEE)}
+                    </strong>
                   </div>
                 </section>
 
-                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className="futsal-form-actions">
                   <button
                     type="button"
-                    className="futsal-btn-primary"
+                    className="futsal-btn-primary futsal-primary-button"
                     onClick={goToUpload}
                     style={primaryButtonStyle}
                   >
                     LANJUT
                   </button>
+
                   <button
                     type="button"
-                    className="futsal-btn-secondary"
+                    className="futsal-btn-secondary futsal-secondary-button"
                     onClick={goBack}
                     style={secondaryButtonStyle}
                   >
@@ -544,8 +955,18 @@ export default function FutsalRegistrationPage() {
             )}
 
             {step === 3 && (
-              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-                <section style={sectionStyle}>
+              <form
+                onSubmit={handleSubmit}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 26,
+                }}
+              >
+                <section
+                  className="futsal-section"
+                  style={sectionStyle}
+                >
                   <div
                     style={{
                       display: "flex",
@@ -557,10 +978,14 @@ export default function FutsalRegistrationPage() {
                       fontWeight: 900,
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</span>
+                    <span style={{ fontSize: 14 }}>
+                      ♙ &nbsp; REKENING RESMI PANITIA ARMASO:
+                    </span>
                     <span>Rp150.000 (1 Tim)</span>
                   </div>
+
                   <div
+                    className="futsal-payment-info"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -572,8 +997,13 @@ export default function FutsalRegistrationPage() {
                       fontSize: 14,
                     }}
                   >
-                    <span>Bank Syariah Indonesia (BSI): 3846-01-045309-53-9</span>
-                    <strong>Panitia Armaso 2027 (Rafi Aziz)</strong>
+                    <span>
+                      Bank Syariah Indonesia (BSI):
+                      3846-01-045309-53-9
+                    </span>
+                    <strong>
+                      Panitia Armaso 2027 (Rafi Aziz)
+                    </strong>
                   </div>
                 </section>
 
@@ -590,27 +1020,35 @@ export default function FutsalRegistrationPage() {
                   {!paymentProof ? (
                     <label
                       htmlFor="paymentProof"
-                      style={{
-                        minHeight: 280,
-                        border: "1.5px dashed #ffb400",
-                        borderRadius: 22,
-                        background: "rgba(90, 31, 0, .92)",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        textAlign: "center",
-                        gap: 18,
-                        padding: 24,
-                        cursor: "pointer",
-                        boxSizing: "border-box",
-                      }}
+                      className="futsal-upload-area"
                     >
-                      <span aria-hidden="true" style={{ fontSize: 48, color: "#ffb400" }}>▤</span>
-                      <strong style={{ color: "#ffb400", fontSize: 16 }}>
+                      <span
+                        aria-hidden="true"
+                        className="futsal-upload-icon"
+                        style={{
+                          fontSize: 48,
+                          color: "#ffb400",
+                        }}
+                      >
+                        ▤
+                      </span>
+
+                      <strong
+                        className="futsal-upload-title"
+                        style={{
+                          color: "#ffb400",
+                          fontSize: 16,
+                        }}
+                      >
                         KLIK UNTUK UNGGAH BUKTI TRANSFER
                       </strong>
-                      <small style={{ color: "#ddd", fontSize: 11 }}>
+
+                      <small
+                        style={{
+                          color: "#ddd",
+                          fontSize: 11,
+                        }}
+                      >
                         Format JPEG, PNG, atau PDF (Ukuran Maksimal 5MB)
                       </small>
                     </label>
@@ -629,32 +1067,49 @@ export default function FutsalRegistrationPage() {
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <strong style={{ overflowWrap: "anywhere" }}>{paymentProof.name}</strong>
-                        <small style={{ display: "block", color: "#ffb400", marginTop: 8 }}>
-                          {(paymentProof.size / 1024).toFixed(1)} KB · Siap diunggah
+                        <strong style={{ overflowWrap: "anywhere" }}>
+                          {paymentProof.name}
+                        </strong>
+
+                        <small
+                          style={{
+                            display: "block",
+                            color: "#ffb400",
+                            marginTop: 8,
+                          }}
+                        >
+                          {(paymentProof.size / 1024).toFixed(1)} KB
+                          {" · "}Siap diunggah
                         </small>
                       </div>
-                      <button type="button" onClick={handleRemoveFile} style={secondaryButtonStyle}>
+
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="futsal-secondary-button"
+                        style={secondaryButtonStyle}
+                      >
                         HAPUS FILE
                       </button>
                     </div>
                   )}
                 </section>
 
-                <div style={{ borderTop: "1px solid #b98200", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
-
+                <div className="futsal-form-actions">
                   <button
                     type="submit"
-                    className="futsal-btn-primary"
+                    className="futsal-btn-primary futsal-primary-button"
                     disabled={loading}
                     style={primaryButtonStyle}
                   >
-                    {loading ? "MENGIRIM PENDAFTARAN..." : "KIRIM PENDAFTARAN"}
+                    {loading
+                      ? "MENGIRIM PENDAFTARAN..."
+                      : "KIRIM PENDAFTARAN"}
                   </button>
 
                   <button
                     type="button"
-                    className="futsal-btn-secondary"
+                    className="futsal-btn-secondary futsal-secondary-button"
                     onClick={goBack}
                     style={secondaryButtonStyle}
                   >
@@ -665,6 +1120,7 @@ export default function FutsalRegistrationPage() {
             )}
 
             <footer
+              className="futsal-footer"
               style={{
                 borderTop: "1px solid rgba(255,180,0,.35)",
                 marginTop: 28,
@@ -681,12 +1137,6 @@ export default function FutsalRegistrationPage() {
           </section>
         </div>
       </main>
-
-      {/* FOOTER UTAMA — DI LUAR AREA FORMULIR */}
-
-
-
-
     </>
   );
 }
