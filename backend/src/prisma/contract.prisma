@@ -1,3 +1,4 @@
+
 // use prisma-next
 
 enum PaymentStatus {
@@ -40,13 +41,14 @@ model User {
 model Payment {
   id Int @id @default(autoincrement())
 
-  amount   Int
-  proofUrl String
+  amount        Int
+  proofUrl      String?
+  paymentMethod String  @default("ONLINE")
 
   status PaymentStatus @default(PENDING)
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
 
   registrationId Int          @unique
   registration   Registration @relation(fields: [registrationId], references: [id])
@@ -58,10 +60,12 @@ model Payment {
 model Registration {
   id Int @id @default(autoincrement())
 
-  type RegistrationType
+  type     RegistrationType
+  whatsapp String
+  source   String @default("ONLINE")
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
 
   participants Participant[]
   team         Team?

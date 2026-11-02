@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'f97e703c2f9be1ddb4360672421bb607ffb1fb4edd4522c133dc7fb0e229b16d'>;
+  StorageHashBase<'04c33b52e9895bc9fa1a66b6c2dac0836ba48fc33ddecb8e70384c3cc74f6aab'>;
 export type ExecutionHash =
   ExecutionHashBase<'083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805'>;
 export type ProfileHash =
@@ -253,9 +253,10 @@ export type FieldOutputTypes = {
     readonly Payment: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly amount: CodecTypes['pg/int4@1']['output'];
-      readonly proofUrl: CodecTypes['pg/text@1']['output'];
+      readonly proofUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly paymentMethod: CodecTypes['pg/text@1']['output'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
-      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
       readonly registrationId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -263,7 +264,9 @@ export type FieldOutputTypes = {
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
-      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly whatsapp: CodecTypes['pg/text@1']['output'];
+      readonly source: CodecTypes['pg/text@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -307,9 +310,10 @@ export type FieldInputTypes = {
     readonly Payment: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly amount: CodecTypes['pg/int4@1']['input'];
-      readonly proofUrl: CodecTypes['pg/text@1']['input'];
+      readonly proofUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly paymentMethod: CodecTypes['pg/text@1']['input'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
-      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
       readonly registrationId: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -317,7 +321,9 @@ export type FieldInputTypes = {
     readonly Registration: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
-      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly whatsapp: CodecTypes['pg/text@1']['input'];
+      readonly source: CodecTypes['pg/text@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -362,18 +368,21 @@ export type StorageColumnTypes = {
       readonly amount: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly proofUrl: CodecTypes['pg/text@1']['output'];
+      readonly paymentMethod: CodecTypes['pg/text@1']['output'];
+      readonly proofUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly registrationId: CodecTypes['pg/int4@1']['output'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
     };
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly source: CodecTypes['pg/text@1']['output'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly userId: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly whatsapp: CodecTypes['pg/text@1']['output'];
     };
     readonly team: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -416,18 +425,21 @@ export type StorageColumnInputTypes = {
       readonly amount: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly proofUrl: CodecTypes['pg/text@1']['input'];
+      readonly paymentMethod: CodecTypes['pg/text@1']['input'];
+      readonly proofUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly registrationId: CodecTypes['pg/int4@1']['input'];
       readonly status: 'PENDING' | 'VERIFIED' | 'REJECTED';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
     };
     readonly registration: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly source: CodecTypes['pg/text@1']['input'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly whatsapp: CodecTypes['pg/text@1']['input'];
     };
     readonly team: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -560,7 +572,16 @@ type ContractBase = Omit<
                 readonly proofUrl: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly paymentMethod: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ONLINE'>;
+                  };
                 };
                 readonly status: {
                   readonly nativeType: 'text';
@@ -574,7 +595,7 @@ type ContractBase = Omit<
                 readonly userId: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                 };
                 readonly registrationId: {
                   readonly nativeType: 'int4';
@@ -646,10 +667,24 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                 };
+                readonly whatsapp: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly source: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ONLINE'>;
+                  };
+                };
                 readonly userId: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                 };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
@@ -978,6 +1013,10 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly proofUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly paymentMethod: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -986,7 +1025,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly userId: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly registrationId: {
@@ -1036,6 +1075,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly amount: { readonly column: 'amount' };
                 readonly proofUrl: { readonly column: 'proofUrl' };
+                readonly paymentMethod: { readonly column: 'paymentMethod' };
                 readonly status: { readonly column: 'status' };
                 readonly userId: { readonly column: 'userId' };
                 readonly registrationId: { readonly column: 'registrationId' };
@@ -1054,8 +1094,16 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly userId: {
+              readonly whatsapp: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly source: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly userId: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly createdAt: {
@@ -1119,6 +1167,8 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly type: { readonly column: 'type' };
+                readonly whatsapp: { readonly column: 'whatsapp' };
+                readonly source: { readonly column: 'source' };
                 readonly userId: { readonly column: 'userId' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };

@@ -1,8 +1,8 @@
-
 "use client";
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type {
     ChangeEvent,
     CSSProperties,
@@ -12,7 +12,13 @@ import type {
 type Step = 1 | 2 | 3;
 
 const PRICE_PER_STUDENT = 35_000;
+const SCIENCE_FIELDS = ["MATEMATIKA", "IPA", "IPS"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+// ====== PENGATURAN BACKEND (ubah di sini kalau berbeda) ======
+const API_BASE_URL = "http://localhost:3001";
+const REGISTRATION_ENDPOINT = "/registrations/science";
+// =============================================================
 
 const ACCOUNT_NUMBER = "3846-01-045309-53-9";
 const ACCOUNT_OWNER = "PANITIA ARMASO 2027 (Rafi Aziz)";
@@ -29,8 +35,6 @@ const formatRupiah = (amount: number) =>
         currency: "IDR",
         maximumFractionDigits: 0,
     }).format(amount);
-
-
 
 const sectionStyle: CSSProperties = {
     border: "1.5px solid #ffb400",
@@ -113,7 +117,6 @@ const linkButtonStyle: CSSProperties = {
     whiteSpace: "nowrap",
 };
 
-
 const panelStyle: CSSProperties = {
     width: "100%",
     maxWidth: 850,
@@ -129,7 +132,23 @@ const panelStyle: CSSProperties = {
     boxShadow: "0 12px 40px rgba(0,0,0,.3)",
 };
 
+// fetch dengan batas waktu supaya tombol tidak "MENGIRIM..." selamanya
+const fetchWithTimeout = async (
+    url: string,
+    options: RequestInit,
+    ms = 15000
+) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+};
+
 export default function IndividualRegistrationPage() {
+    const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [step, setStep] = useState<Step>(1);
@@ -140,6 +159,9 @@ export default function IndividualRegistrationPage() {
 
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+
     const totalPayment = PRICE_PER_STUDENT;
 
     const scrollToTop = () => {
@@ -148,6 +170,7 @@ export default function IndividualRegistrationPage() {
 
     const changeStep = (nextStep: Step) => {
         setStep(nextStep);
+        setSubmitError("");
         scrollToTop();
     };
 
@@ -174,11 +197,11 @@ export default function IndividualRegistrationPage() {
         const allowedTypes = [
             "image/jpeg",
             "image/png",
-            "application/pdf",
+            "image/webp",
         ];
 
         if (!allowedTypes.includes(file.type)) {
-            alert("Format file harus JPG, PNG, atau PDF.");
+            alert("Format file harus JPG, PNG, atau WEBP.");
             event.target.value = "";
             setPaymentProof(null);
             return;
@@ -191,6 +214,7 @@ export default function IndividualRegistrationPage() {
             return;
         }
 
+        setSubmitError("");
         setPaymentProof(file);
     };
 
@@ -202,27 +226,103 @@ export default function IndividualRegistrationPage() {
         }
     };
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
+        if (isSubmitting) return;
+
         if (!paymentProof) {
-            alert("Unggah bukti pembayaran terlebih dahulu.");
+            setSubmitError("Unggah bukti pembayaran terlebih dahulu.");
             return;
         }
 
-        // Integrasi backend belum ditambahkan.
-        // Endpoint dan payload mengikuti kontrak dari tim backend.
-        console.info("Data pendaftaran individu:", {
-            participantName,
-            school,
-            participantPhone,
-            totalPayment,
-            paymentProof,
-        });
+        setIsSubmitting(true);
+        setSubmitError("");
 
-        alert(
-            "Data frontend sudah tervalidasi. Pengiriman ke server belum diaktifkan."
-        );
+        let stage = "mengirim data pendaftaran";
+
+        try {
+            const field = (
+                new URLSearchParams(window.location.search).get("mapel") ?? ""
+            ).toUpperCase();
+
+            if (!SCIENCE_FIELDS.includes(field)) {
+                throw new Error(
+                    "Mata pelajaran tidak valid. Buka form dari halaman pilihan mapel."
+                );
+            }
+
+            // 1) Kirim data pendaftaran (JSON) sesuai CreateScienceRegistrationDto
+            const response = await fetchWithTimeout(
+                `${API_BASE_URL}${REGISTRATION_ENDPOINT}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        type: "SELF",
+                        whatsapp: participantPhone.trim(),
+                        participants: [
+                            {
+                                fullName: participantName.trim(),
+                                school: school.trim(),
+                                field,
+                            },
+                        ],
+                    }),
+                }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data.registrationId) {
+                throw new Error(data.message || "Pendaftaran gagal dikirim!");
+            }
+
+            // 2) Upload bukti pembayaran (FormData)
+            stage = "mengunggah bukti pembayaran";
+            const payment = new FormData();
+            payment.append("amount", String(totalPayment));
+            payment.append("registrationId", String(data.registrationId));
+            payment.append("whatsapp", participantPhone.trim()); // wajib, harus sama dengan data pendaftaran
+            payment.append("proof", paymentProof);
+
+            const paymentResponse = await fetchWithTimeout(`${API_BASE_URL}/payments`, {
+                method: "POST",
+                body: payment, // jangan set Content-Type manual
+            });
+
+            const id = encodeURIComponent(String(data.registrationId));
+
+            if (!paymentResponse.ok) {
+                alert(
+                    "Data pendaftaran berhasil disimpan, tetapi bukti pembayaran gagal diunggah. Silakan coba kembali dari halaman pembayaran."
+                );
+                router.push(`/payment?registrationId=${id}&success=false`);
+                return;
+            }
+
+            router.push(`/payment?registrationId=${id}&success=true`);
+        } catch (err) {
+            console.error(err);
+
+            if (err instanceof DOMException && err.name === "AbortError") {
+                setSubmitError(
+                    `Server tidak merespons saat ${stage} (lebih dari 15 detik). Cek apakah backend berjalan dan lihat terminal backend.`
+                );
+            } else if (err instanceof TypeError) {
+                setSubmitError(
+                    `Backend tidak bisa dihubungi saat ${stage}. Pastikan backend jalan di ${API_BASE_URL}.`
+                );
+            } else {
+                setSubmitError(
+                    err instanceof Error
+                        ? err.message
+                        : "Terjadi kesalahan saat mengirim pendaftaran."
+                );
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -483,8 +583,8 @@ export default function IndividualRegistrationPage() {
                                     onChange={(event) =>
                                         setParticipantName(event.target.value)
                                     }
-
                                     autoComplete="name"
+                                    maxLength={100}
                                     required
                                     style={inputStyle}
                                 />
@@ -517,6 +617,7 @@ export default function IndividualRegistrationPage() {
                                     onChange={(event) => setSchool(event.target.value)}
                                     placeholder=""
                                     autoComplete="organization"
+                                    maxLength={150}
                                     required
                                     style={inputStyle}
                                 />
@@ -550,8 +651,8 @@ export default function IndividualRegistrationPage() {
                                     onChange={(event) =>
                                         setParticipantPhone(event.target.value)
                                     }
-
                                     autoComplete="tel"
+                                    placeholder="081234567890"
                                     required
                                     style={inputStyle}
                                 />
@@ -892,7 +993,7 @@ export default function IndividualRegistrationPage() {
                                     ref={fileInputRef}
                                     id="paymentProof"
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                     onChange={handleFileChange}
                                     style={{ display: "none" }}
                                 />
@@ -941,7 +1042,7 @@ export default function IndividualRegistrationPage() {
                                                 fontSize: 9,
                                             }}
                                         >
-                                            Format JPG, PNG, atau PDF (Ukuran Maksimal 5MB)
+                                            Format JPG, PNG, atau WEBP (Ukuran Maksimal 5MB)
                                         </small>
                                     </label>
                                 ) : (
@@ -983,6 +1084,7 @@ export default function IndividualRegistrationPage() {
                                         <button
                                             type="button"
                                             onClick={removeFile}
+                                            disabled={isSubmitting}
                                             style={secondaryButtonStyle}
                                         >
                                             HAPUS FILE
@@ -990,6 +1092,21 @@ export default function IndividualRegistrationPage() {
                                     </div>
                                 )}
                             </section>
+
+                            {/* ERROR MESSAGE */}
+                            {submitError && (
+                                <p
+                                    role="alert"
+                                    style={{
+                                        color: "#ff6b6b",
+                                        fontSize: 12,
+                                        textAlign: "center",
+                                        margin: 0,
+                                    }}
+                                >
+                                    {submitError}
+                                </p>
+                            )}
 
                             {/* BUTTONS */}
                             <div
@@ -1003,15 +1120,25 @@ export default function IndividualRegistrationPage() {
                             >
                                 <button
                                     type="submit"
+                                    disabled={isSubmitting}
                                     className="futsal-btn-primary"
-                                    style={primaryButtonStyle}
+                                    style={{
+                                        ...primaryButtonStyle,
+                                        opacity: isSubmitting ? 0.6 : 1,
+                                        cursor: isSubmitting
+                                            ? "not-allowed"
+                                            : "pointer",
+                                    }}
                                 >
-                                    LANJUT
+                                    {isSubmitting
+                                        ? "MENGIRIM..."
+                                        : "KIRIM PENDAFTARAN"}
                                 </button>
 
                                 <button
                                     type="button"
                                     onClick={() => changeStep(2)}
+                                    disabled={isSubmitting}
                                     className="futsal-btn-secondary"
                                     style={secondaryButtonStyle}
                                 >

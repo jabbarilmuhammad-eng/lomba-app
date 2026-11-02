@@ -2,10 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Param,
   Patch,
   Post,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -13,17 +13,8 @@ import {
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import type { Request } from 'express';
-
 import { PaymentsService } from './payments.service.js';
-
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { AdminApiGuard } from '../auth/guards/admin-api.guard.js';
-import { AuthUser } from '../auth/auth-user.interface.js';
-
-interface AuthenticatedRequest extends Request {
-  user: AuthUser;
-}
 
 @Controller('payments')
 export class PaymentsController {
@@ -31,8 +22,14 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
   ) {}
 
+  // Daftar semua pembayaran untuk halaman verifikasi admin
+  @Get()
+  @UseGuards(AdminApiGuard)
+  getPayments() {
+    return this.paymentsService.getPayments();
+  }
+
   @Post()
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('proof', {
       limits: {
@@ -43,7 +40,6 @@ export class PaymentsController {
   async createPayment(
     @UploadedFile() file: any,
     @Body() body: any,
-    @Req() req: AuthenticatedRequest,
   ) {
     if (!file) {
       throw new BadRequestException(
@@ -51,14 +47,11 @@ export class PaymentsController {
       );
     }
 
-    return this.paymentsService.createPayment(
-      {
-        amount: Number(body.amount),
-        registrationId: Number(body.registrationId),
-        file,
-      },
-      req.user,
-    );
+    return this.paymentsService.createPayment({
+      registrationId: Number(body.registrationId),
+      whatsapp: String(body.whatsapp || ''),
+      file,
+    });
   }
 
   @Patch(':id/verify')

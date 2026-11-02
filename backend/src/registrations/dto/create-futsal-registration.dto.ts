@@ -1,6 +1,5 @@
+
 import {
-  ArrayMinSize,
-  IsArray,
   IsNotEmpty,
   IsString,
 } from 'class-validator';
@@ -14,7 +13,7 @@ export class CreateFutsalRegistrationDto {
   @IsNotEmpty()
   school: string;
 
-  @IsArray()
-  @ArrayMinSize(1)
-  members: string[];
+  @IsString()
+  @IsNotEmpty()
+  whatsapp: string;
 }

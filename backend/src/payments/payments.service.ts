@@ -4,12 +4,9 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 
 import { db } from '../prisma/db.js';
-import { AuthUser } from '../auth/auth-user.interface.js';
-
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
@@ -18,29 +15,86 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const SCIENCE_PRICE = 35000;
+const FUTSAL_PRICE = 150000;
+
 @Injectable()
 export class PaymentsService {
-  async createPayment(
-    data: {
-      amount: number;
-      registrationId: number;
-      file: any;
-    },
-    user: AuthUser,
-  ) {
-    if (!data.amount || data.amount <= 0) {
-      throw new BadRequestException(
-        'Jumlah pembayaran tidak valid',
+  // Daftar pembayaran untuk halaman verifikasi admin
+  async getPayments() {
+    const payments = await db.orm.public.Payment.all();
+    const registrations = await db.orm.public.Registration.all();
+    const participants = await db.orm.public.Participant.all();
+    const teams = await db.orm.public.Team.all();
+
+    const result = payments.map((payment) => {
+      const registration = registrations.find(
+        (item) => item.id === payment.registrationId,
       );
+
+      const registrationParticipants = participants.filter(
+        (item) => item.registrationId === payment.registrationId,
+      );
+
+      const team = teams.find(
+        (item) => item.registrationId === payment.registrationId,
+      );
+
+      const firstParticipant = registrationParticipants[0];
+
+      return {
+        id: payment.id,
+        paymentId: payment.id,
+        registrationId: payment.registrationId,
+
+        type: registration?.type ?? '-',
+        whatsapp: registration?.whatsapp ?? '-',
+        source: registration?.source ?? '-',
+
+        name:
+          team?.name ??
+          firstParticipant?.fullName ??
+          '-',
+
+        school:
+          team?.school ??
+          firstParticipant?.school ??
+          '-',
+
+        field: firstParticipant?.field ?? null,
+
+        participants: registrationParticipants.map((item) => ({
+          fullName: item.fullName,
+          school: item.school,
+          field: item.field,
+        })),
+
+        amount: payment.amount,
+        proofUrl: payment.proofUrl,
+        status: payment.status,
+        paymentMethod: payment.paymentMethod,
+
+        createdAt: registration?.createdAt ?? null,
+      };
+    });
+
+    // terbaru di atas
+    return result.sort((a, b) => b.paymentId - a.paymentId);
+  }
+
+  async createPayment(data: {
+    registrationId: number;
+    whatsapp: string;
+    file: any;
+  }) {
+    if (!data.registrationId || data.registrationId <= 0) {
+      throw new BadRequestException('registrationId tidak valid');
     }
 
-    if (
-      !data.registrationId ||
-      data.registrationId <= 0
-    ) {
-      throw new BadRequestException(
-        'registrationId tidak valid',
-      );
+    const whatsapp = String(data.whatsapp || '').trim();
+
+    if (!whatsapp) {
+      throw new BadRequestException('Nomor WhatsApp wajib diisi');
     }
 
     const registrations =
@@ -48,25 +102,27 @@ export class PaymentsService {
         id: data.registrationId,
       }).all();
 
-    const registration =
-      registrations[0];
+    const registration = registrations[0];
 
     if (!registration) {
-      throw new NotFoundException(
-        'Pendaftaran tidak ditemukan',
+      throw new NotFoundException('Pendaftaran tidak ditemukan');
+    }
+
+    if (registration.source !== 'ONLINE') {
+      throw new BadRequestException(
+        'Pembayaran online hanya berlaku untuk pendaftaran online',
       );
     }
 
-    if (registration.userId !== user.sub) {
-      throw new UnauthorizedException(
-        'Kamu tidak memiliki akses ke pendaftaran ini',
+    if (registration.whatsapp !== whatsapp) {
+      throw new BadRequestException(
+        'Nomor WhatsApp tidak sesuai dengan data pendaftaran',
       );
     }
 
     const existingPayments =
       await db.orm.public.Payment.where({
-        registrationId:
-          data.registrationId,
+        registrationId: data.registrationId,
       }).all();
 
     if (existingPayments.length > 0) {
@@ -76,9 +132,7 @@ export class PaymentsService {
     }
 
     if (!data.file) {
-      throw new BadRequestException(
-        'Bukti pembayaran wajib diupload',
-      );
+      throw new BadRequestException('Bukti pembayaran wajib diupload');
     }
 
     const allowedMimeTypes = [
@@ -88,11 +142,7 @@ export class PaymentsService {
       'image/webp',
     ];
 
-    if (
-      !allowedMimeTypes.includes(
-        data.file.mimetype,
-      )
-    ) {
+    if (!allowedMimeTypes.includes(data.file.mimetype)) {
       throw new BadRequestException(
         'Format bukti pembayaran harus JPG, JPEG, PNG, atau WEBP',
       );
@@ -104,79 +154,84 @@ export class PaymentsService {
       );
     }
 
-    const uploadResult =
-      await new Promise<any>(
-        (resolve, reject) => {
-          const uploadStream =
-            cloudinary.uploader.upload_stream(
-              {
-                folder:
-                  'armaso/payment-proofs',
-                resource_type: 'image',
-              },
-              (error, result) => {
-                if (error) {
-                  reject(error);
-                } else {
-                  resolve(result);
-                }
-              },
-            );
+    let amount: number;
 
-          uploadStream.end(
-            data.file.buffer,
-          );
-        },
+    if (registration.type === 'SELF' || registration.type === 'COLLECTIVE') {
+      const participants =
+        await db.orm.public.Participant.where({
+          registrationId: data.registrationId,
+        }).all();
+
+      const participantCount = participants.length;
+
+      if (participantCount < 1 || participantCount > 11) {
+        throw new BadRequestException(
+          'Jumlah peserta pendaftaran tidak valid',
+        );
+      }
+
+      const freeParticipants = Math.floor(participantCount / 11);
+
+      amount =
+        (participantCount - freeParticipants) * SCIENCE_PRICE;
+    } else if (registration.type === 'FUTSAL') {
+      amount = FUTSAL_PRICE;
+    } else {
+      throw new BadRequestException(
+        'Jenis pendaftaran tidak valid',
       );
+    }
 
-    const payment =
-      await db.orm.public.Payment.create({
-        amount: data.amount,
-        proofUrl:
-          uploadResult.secure_url,
-        status: 'PENDING',
-        userId: user.sub,
-        registrationId:
-          data.registrationId,
-      });
+    const uploadResult = await new Promise<any>(
+      (resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'armaso/payment-proofs',
+            resource_type: 'image',
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else if (!result) {
+              reject(new Error('Upload bukti pembayaran gagal'));
+            } else {
+              resolve(result);
+            }
+          },
+        );
+
+        uploadStream.end(data.file.buffer);
+      },
+    );
+
+    const payment = await db.orm.public.Payment.create({
+      amount,
+      proofUrl: uploadResult.secure_url,
+      status: 'PENDING',
+      paymentMethod: 'ONLINE',
+      userId: null,
+      registrationId: data.registrationId,
+    });
 
     return {
-      message:
-        'Bukti pembayaran berhasil diupload',
-
-      paymentId:
-        payment.id,
-
-      registrationId:
-        payment.registrationId,
-
-      userId:
-        user.sub,
-
-      amount:
-        payment.amount,
-
-      status:
-        payment.status,
-
-      proofUrl:
-        payment.proofUrl,
+      message: 'Bukti pembayaran berhasil diupload',
+      paymentId: payment.id,
+      registrationId: payment.registrationId,
+      amount: payment.amount,
+      status: payment.status,
+      proofUrl: payment.proofUrl,
     };
   }
 
   async verifyPayment(id: number) {
-    const payments =
-      await db.orm.public.Payment.where({
-        id,
-      }).all();
+    const payments = await db.orm.public.Payment.where({
+      id,
+    }).all();
 
-    const payment =
-      payments[0];
+    const payment = payments[0];
 
     if (!payment) {
-      throw new NotFoundException(
-        'Pembayaran tidak ditemukan',
-      );
+      throw new NotFoundException('Pembayaran tidak ditemukan');
     }
 
     if (payment.status === 'VERIFIED') {
@@ -185,49 +240,32 @@ export class PaymentsService {
       );
     }
 
-    // Ambil data pembayaran lalu update menggunakan
-    // method yang didukung ORM prisma-next.
-   const updatedPayment =
-      await db.orm.public.Payment
-      .where({ id })
-      .update({
-      status: 'VERIFIED',
+    const updatedPayment =
+      await db.orm.public.Payment.where({ id }).update({
+        status: 'VERIFIED',
       });
 
     if (!updatedPayment) {
-      throw new NotFoundException(
-        'Pembayaran tidak ditemukan',
-      );
+      throw new NotFoundException('Pembayaran tidak ditemukan');
     }
 
     return {
-      message:
-        'Pembayaran berhasil diverifikasi',
-
-      paymentId:
-        updatedPayment.id,
-
-      registrationId:
-        updatedPayment.registrationId,
-
-      status:
-        updatedPayment.status,
+      message: 'Pembayaran berhasil diverifikasi',
+      paymentId: updatedPayment.id,
+      registrationId: updatedPayment.registrationId,
+      status: updatedPayment.status,
     };
   }
 
   async rejectPayment(id: number) {
-    const payments =
-      await db.orm.public.Payment.where({
-        id,
-      }).all();
+    const payments = await db.orm.public.Payment.where({
+      id,
+    }).all();
 
-    const payment =
-      payments[0];
+    const payment = payments[0];
 
     if (!payment) {
-      throw new NotFoundException(
-        'Pembayaran tidak ditemukan',
-      );
+      throw new NotFoundException('Pembayaran tidak ditemukan');
     }
 
     if (payment.status === 'REJECTED') {
@@ -237,30 +275,19 @@ export class PaymentsService {
     }
 
     const updatedPayment =
-      await db.orm.public.Payment
-      .where({ id })
-      .update({
-      status: 'REJECTED',
+      await db.orm.public.Payment.where({ id }).update({
+        status: 'REJECTED',
       });
 
     if (!updatedPayment) {
-      throw new NotFoundException(
-        'Pembayaran tidak ditemukan',
-      );
+      throw new NotFoundException('Pembayaran tidak ditemukan');
     }
 
     return {
-      message:
-        'Pembayaran berhasil ditolak',
-
-      paymentId:
-        updatedPayment.id,
-
-      registrationId:
-        updatedPayment.registrationId,
-
-      status:
-        updatedPayment.status,
+      message: 'Pembayaran berhasil ditolak',
+      paymentId: updatedPayment.id,
+      registrationId: updatedPayment.registrationId,
+      status: updatedPayment.status,
     };
   }
 }

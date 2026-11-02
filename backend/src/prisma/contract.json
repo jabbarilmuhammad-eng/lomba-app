@@ -225,8 +225,15 @@
                   "kind": "scalar"
                 }
               },
-              "proofUrl": {
+              "paymentMethod": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "proofUrl": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -260,7 +267,7 @@
                 }
               },
               "userId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
@@ -310,6 +317,9 @@
                 "id": {
                   "column": "id"
                 },
+                "paymentMethod": {
+                  "column": "paymentMethod"
+                },
                 "proofUrl": {
                   "column": "proofUrl"
                 },
@@ -346,6 +356,13 @@
                   "kind": "scalar"
                 }
               },
+              "source": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "type": {
                 "nullable": false,
                 "type": {
@@ -367,9 +384,16 @@
                 }
               },
               "userId": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "whatsapp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               }
@@ -444,6 +468,9 @@
                 "id": {
                   "column": "id"
                 },
+                "source": {
+                  "column": "source"
+                },
                 "type": {
                   "column": "type"
                 },
@@ -452,6 +479,9 @@
                 },
                 "userId": {
                   "column": "userId"
+                },
+                "whatsapp": {
+                  "column": "whatsapp"
                 }
               },
               "namespaceId": "public",
@@ -890,10 +920,19 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "paymentMethod": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ONLINE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "proofUrl": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "registrationId": {
                   "codecId": "pg/int4@1",
@@ -923,7 +962,7 @@
                 "userId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -1010,6 +1049,15 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ONLINE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "type": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -1029,6 +1077,11 @@
                 "userId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
+                  "nullable": true
+                },
+                "whatsapp": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 }
               },
@@ -1328,7 +1381,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f97e703c2f9be1ddb4360672421bb607ffb1fb4edd4522c133dc7fb0e229b16d"
+    "storageHash": "04c33b52e9895bc9fa1a66b6c2dac0836ba48fc33ddecb8e70384c3cc74f6aab"
   },
   "execution": {
     "executionHash": "083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805",

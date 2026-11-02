@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRef, useState } from "react";
@@ -50,14 +49,15 @@ export default function FutsalRegistrationPage() {
       return;
     }
 
+    // Backend hanya menerima JPG, PNG, dan WEBP
     const allowedTypes = [
       "image/jpeg",
       "image/png",
-      "application/pdf",
+      "image/webp",
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Format file harus JPG, PNG, atau PDF.");
+      alert("Format file harus JPG, PNG, atau WEBP.");
       event.target.value = "";
       setPaymentProof(null);
       return;
@@ -108,6 +108,8 @@ export default function FutsalRegistrationPage() {
   ) => {
     event.preventDefault();
 
+    if (loading) return;
+
     if (
       !school.trim() ||
       !officialName.trim() ||
@@ -126,6 +128,8 @@ export default function FutsalRegistrationPage() {
     setLoading(true);
 
     try {
+      const whatsapp = officialPhone.trim();
+
       const response = await fetch(
         `${API_BASE_URL}/registrations/futsal`,
         {
@@ -134,8 +138,9 @@ export default function FutsalRegistrationPage() {
           body: JSON.stringify({
             teamName: `Tim ${school.trim()}`,
             school: school.trim(),
+            whatsapp,
             members: [
-              `${officialName.trim()} (Official - ${officialPhone.trim()})`,
+              `${officialName.trim()} (Official - ${whatsapp})`,
             ],
           }),
         }
@@ -144,9 +149,11 @@ export default function FutsalRegistrationPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.registrationId) {
-        throw new Error(
-          data.message || "Pendaftaran gagal dikirim!"
-        );
+        const message = Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message;
+
+        throw new Error(message || "Pendaftaran gagal dikirim!");
       }
 
       const formData = new FormData();
@@ -155,6 +162,8 @@ export default function FutsalRegistrationPage() {
         "registrationId",
         String(data.registrationId)
       );
+      // Wajib: harus sama dengan nomor WhatsApp saat pendaftaran
+      formData.append("whatsapp", whatsapp);
       formData.append("proof", paymentProof);
 
       const paymentResponse = await fetch(
@@ -215,6 +224,15 @@ export default function FutsalRegistrationPage() {
     padding: 0,
     background: "transparent",
     boxSizing: "border-box",
+  };
+
+  // Kotak berborder untuk bagian "Rekening Resmi Panitia ARMASO"
+  const bankBoxStyle: CSSProperties = {
+    ...sectionStyle,
+    border: "1px solid #ffb400",
+    borderRadius: 14,
+    padding: "16px 18px",
+    background: "rgba(0,0,0,.35)",
   };
 
   const labelStyle: CSSProperties = {
@@ -771,7 +789,7 @@ export default function FutsalRegistrationPage() {
               >
                 <section
                   className="futsal-section"
-                  style={sectionStyle}
+                  style={bankBoxStyle}
                 >
                   <div
                     style={{
@@ -965,7 +983,7 @@ export default function FutsalRegistrationPage() {
               >
                 <section
                   className="futsal-section"
-                  style={sectionStyle}
+                  style={bankBoxStyle}
                 >
                   <div
                     style={{
@@ -1012,7 +1030,7 @@ export default function FutsalRegistrationPage() {
                     ref={fileInputRef}
                     id="paymentProof"
                     type="file"
-                    accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     onChange={handleFileChange}
                     style={{ display: "none" }}
                   />
@@ -1049,7 +1067,7 @@ export default function FutsalRegistrationPage() {
                           fontSize: 11,
                         }}
                       >
-                        Format JPEG, PNG, atau PDF (Ukuran Maksimal 5MB)
+                        Format JPG, PNG, atau WEBP (Ukuran Maksimal 5MB)
                       </small>
                     </label>
                   ) : (

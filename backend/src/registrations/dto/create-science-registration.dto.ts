@@ -1,3 +1,4 @@
+
 import {
   IsArray,
   IsEnum,
@@ -35,6 +36,10 @@ export class ScienceParticipantDto {
 export class CreateScienceRegistrationDto {
   @IsEnum(RegistrationType)
   type: RegistrationType;
+
+  @IsString()
+  @IsNotEmpty()
+  whatsapp: string;
 
   @IsArray()
   @ValidateNested({ each: true })

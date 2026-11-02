@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import { Fragment, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
@@ -9,7 +10,7 @@ import HomeFooter from "@/components/home/HomeFooter";
 
 
 type Step = 1 | 2 | 3 | 4;
-type Subject = "Matematika" | "Sosial" | "IPA";
+type Subject = "Matematika" | "IPS" | "IPA";
 
 type Participant = {
   id: number;
@@ -21,7 +22,19 @@ const PRICE_PER_STUDENT = 35_000;
 const MAX_PAID_STUDENTS = 10;
 const MAX_PARTICIPANTS = 11;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const SUBJECTS: Subject[] = ["Matematika", "Sosial", "IPA"];
+const SUBJECTS: Subject[] = ["Matematika", "IPS", "IPA"];
+
+// ====== PENGATURAN BACKEND ======
+const API_BASE_URL = "http://localhost:3001";
+const REGISTRATION_ENDPOINT = "/registrations/science";
+
+// Nama bidang di form -> nilai enum ScienceField di backend
+const SUBJECT_TO_FIELD: Record<Subject, string> = {
+  Matematika: "MATEMATIKA",
+  IPS: "IPS",
+  IPA: "IPA",
+};
+// ================================
 
 const steps: { number: Step; label: string }[] = [
   { number: 1, label: "DATA GURU PEMBINA" },
@@ -36,6 +49,21 @@ const formatRupiah = (amount: number) =>
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(amount);
+
+// fetch dengan batas waktu supaya tombol tidak "MENGIRIM..." selamanya
+const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit,
+  ms = 20000,
+) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 const panelStyle: CSSProperties = {
   width: "100%",
@@ -103,6 +131,7 @@ const secondaryButtonStyle: CSSProperties = {
 };
 
 export default function KolektifRegistrationPage() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>(1);
   const [officialName, setOfficialName] = useState("");
@@ -112,6 +141,8 @@ export default function KolektifRegistrationPage() {
     { id: 1, name: "", subject: "" },
   ]);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const registeredCount = participants.length;
   const paidCount = Math.min(registeredCount, MAX_PAID_STUDENTS);
@@ -132,6 +163,7 @@ export default function KolektifRegistrationPage() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const changeStep = (nextStep: Step) => {
     setStep(nextStep);
+    setSubmitError("");
     scrollToTop();
   };
 
@@ -176,6 +208,16 @@ export default function KolektifRegistrationPage() {
       alert("Lengkapi nama dan bidang kompetisi seluruh peserta.");
       return;
     }
+
+    // Backend menolak nama peserta yang kembar dalam satu pendaftaran
+    const names = participants.map((participant) =>
+      participant.name.trim().toLowerCase(),
+    );
+    if (new Set(names).size !== names.length) {
+      alert("Nama peserta tidak boleh sama dalam satu pendaftaran.");
+      return;
+    }
+
     changeStep(3);
   };
 
@@ -183,9 +225,9 @@ export default function KolektifRegistrationPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      alert("Format file harus JPG, PNG, atau PDF.");
+      alert("Format file harus JPG, PNG, atau WEBP.");
       event.target.value = "";
       setPaymentProof(null);
       return;
@@ -196,6 +238,7 @@ export default function KolektifRegistrationPage() {
       setPaymentProof(null);
       return;
     }
+    setSubmitError("");
     setPaymentProof(file);
   };
 
@@ -204,26 +247,101 @@ export default function KolektifRegistrationPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleFrontendSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isSubmitting) return;
+
     if (!paymentProof) {
-      alert("Unggah bukti pembayaran terlebih dahulu.");
+      setSubmitError("Unggah bukti pembayaran terlebih dahulu.");
       return;
     }
 
-    // Integrasi API sengaja belum ditambahkan: kontrak endpoint dan payload
-    // harus mengikuti backend yang dikelola tim backend.
-    console.info("Data Science Kolektif siap diintegrasikan ke backend:", {
-      officialName,
-      officialPhone,
-      school,
-      participants,
-      payment: paymentSummary,
-      paymentProof,
-    });
-    alert(
-      "Validasi frontend berhasil. Pengiriman ke server belum diaktifkan karena endpoint backend belum diberikan.",
-    );
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    let stage = "mengirim data pendaftaran";
+
+    try {
+      const whatsapp = officialPhone.trim();
+      const schoolName = school.trim();
+
+      // 1) Kirim data pendaftaran (JSON) sesuai CreateScienceRegistrationDto
+      const response = await fetchWithTimeout(
+        `${API_BASE_URL}${REGISTRATION_ENDPOINT}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "COLLECTIVE",
+            whatsapp,
+            participants: participants.map((participant) => ({
+              fullName: participant.name.trim(),
+              school: schoolName,
+              field: SUBJECT_TO_FIELD[participant.subject as Subject],
+            })),
+          }),
+        },
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.registrationId) {
+        const message = Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message;
+        throw new Error(message || "Pendaftaran gagal dikirim!");
+      }
+
+      // 2) Upload bukti pembayaran (FormData)
+      stage = "mengunggah bukti pembayaran";
+
+      const payment = new FormData();
+      payment.append("amount", String(totalPayment));
+      payment.append("registrationId", String(data.registrationId));
+      payment.append("whatsapp", whatsapp); // wajib, harus sama dengan data pendaftaran
+      payment.append("proof", paymentProof);
+
+      const paymentResponse = await fetchWithTimeout(
+        `${API_BASE_URL}/payments`,
+        {
+          method: "POST",
+          body: payment, // jangan set Content-Type manual
+        },
+      );
+
+      const id = encodeURIComponent(String(data.registrationId));
+
+      if (!paymentResponse.ok) {
+        alert(
+          "Data pendaftaran berhasil disimpan, tetapi bukti pembayaran gagal diunggah. Silakan coba kembali dari halaman pembayaran.",
+        );
+        router.push(`/payment?registrationId=${id}&success=false`);
+        return;
+      }
+
+      router.push(`/payment?registrationId=${id}&success=true`);
+    } catch (err) {
+      console.error(err);
+
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setSubmitError(
+          `Server tidak merespons saat ${stage} (lebih dari 20 detik). Cek apakah backend berjalan.`,
+        );
+      } else if (err instanceof TypeError) {
+        setSubmitError(
+          `Backend tidak bisa dihubungi saat ${stage}. Pastikan backend jalan di ${API_BASE_URL}.`,
+        );
+      } else {
+        setSubmitError(
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan saat mengirim pendaftaran.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -533,7 +651,7 @@ export default function KolektifRegistrationPage() {
 
             {step === 3 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <section style={{ ...sectionStyle, padding: "14px 16px" }}>
+                <section style={{...sectionStyle, padding: "14px 16px", border: "1px solid #ffb400",borderRadius: 12,}}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                     <strong style={{ color: "#ffb400", fontSize: 12 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</strong>
                     <strong style={{ color: "#ffb400", fontSize: 12 }}>{formatRupiah(paymentSummary.amount)} ({paymentSummary.registered} peserta terdaftar)</strong>
@@ -600,8 +718,8 @@ export default function KolektifRegistrationPage() {
             )}
 
             {step === 4 && (
-              <form onSubmit={handleFrontendSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <section style={{ ...sectionStyle, padding: "14px 16px" }}>
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <section style={{...sectionStyle,padding: "14px 16px",border: "1px solid #ffb400",borderRadius: 12,}}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                     <strong style={{ color: "#ffb400", fontSize: 12 }}>♙ &nbsp; REKENING RESMI PANITIA ARMASO:</strong>
                     <strong style={{ color: "#ffb400", fontSize: 12 }}>{formatRupiah(paymentSummary.amount)}</strong>
@@ -611,12 +729,12 @@ export default function KolektifRegistrationPage() {
                 </section>
 
                 <section>
-                  <input ref={fileInputRef} id="paymentProof" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={handleFileChange} style={{ display: "none" }} />
+                  <input ref={fileInputRef} id="paymentProof" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={handleFileChange} style={{ display: "none" }} />
                   {!paymentProof ? (
                     <label htmlFor="paymentProof" style={{ minHeight: 260, border: "1.5px dashed #ffb400", borderRadius: 20, background: "rgba(90,31,0,.92)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 15, padding: 22, cursor: "pointer", boxSizing: "border-box" }}>
                       <span aria-hidden="true" style={{ fontSize: 46, color: "#ffb400" }}>▤</span>
                       <strong style={{ color: "#ffb400", fontSize: 15 }}>KLIK UNTUK UNGGAH BUKTI TRANSFER</strong>
-                      <small style={{ color: "#ddd", fontSize: 11 }}>Format JPG, PNG, atau PDF (Ukuran Maksimal 5MB)</small>
+                      <small style={{ color: "#ddd", fontSize: 11 }}>Format JPG, PNG, atau WEBP (Ukuran Maksimal 5MB)</small>
                     </label>
                   ) : (
                     <div style={{ border: "1.5px solid #ffb400", borderRadius: 16, background: "rgba(0,0,0,.9)", padding: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
@@ -624,14 +742,31 @@ export default function KolektifRegistrationPage() {
                         <strong style={{ overflowWrap: "anywhere" }}>{paymentProof.name}</strong>
                         <small style={{ display: "block", color: "#ffb400", marginTop: 7 }}>{(paymentProof.size / 1024).toFixed(1)} KB · Siap diunggah</small>
                       </div>
-                      <button type="button" onClick={removeFile} style={secondaryButtonStyle}>HAPUS FILE</button>
+                      <button type="button" onClick={removeFile} disabled={isSubmitting} style={secondaryButtonStyle}>HAPUS FILE</button>
                     </div>
                   )}
                 </section>
 
+                {submitError && (
+                  <p role="alert" style={{ margin: 0, color: "#ff6b6b", fontSize: 12, textAlign: "center" }}>
+                    {submitError}
+                  </p>
+                )}
+
                 <div style={{ borderTop: "1px solid #b98200", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
-                  <button type="submit" className="futsal-btn-primary" style={primaryButtonStyle}>KIRIM PENDAFTARAN</button>
-                  <button type="button" onClick={() => changeStep(3)} className="futsal-btn-secondary" style={secondaryButtonStyle}>KEMBALI</button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="futsal-btn-primary"
+                    style={{
+                      ...primaryButtonStyle,
+                      opacity: isSubmitting ? 0.6 : 1,
+                      cursor: isSubmitting ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {isSubmitting ? "MENGIRIM..." : "KIRIM PENDAFTARAN"}
+                  </button>
+                  <button type="button" onClick={() => changeStep(3)} disabled={isSubmitting} className="futsal-btn-secondary" style={secondaryButtonStyle}>KEMBALI</button>
                 </div>
               </form>
             )}
@@ -643,6 +778,6 @@ export default function KolektifRegistrationPage() {
         </div>
       </main>
 
-    </ >
+    </>
   );
 }

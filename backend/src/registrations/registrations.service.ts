@@ -1,11 +1,10 @@
+
 import {
   BadRequestException,
   Injectable,
 } from '@nestjs/common';
 
 import { db } from '../prisma/db.js';
-
-import { AuthUser } from '../auth/auth-user.interface.js';
 
 import { CreateScienceRegistrationDto } from './dto/create-science-registration.dto.js';
 
@@ -26,9 +25,6 @@ export class RegistrationsService {
     const teams =
       await db.orm.public.Team.all();
 
-    const members =
-      await db.orm.public.TeamMember.all();
-
     const payments =
       await db.orm.public.Payment.all();
 
@@ -45,13 +41,6 @@ export class RegistrationsService {
             team.registrationId ===
             registration.id,
         );
-
-        const teamMembers = team
-          ? members.filter(
-              (member) =>
-                member.teamId === team.id,
-            )
-          : [];
 
         const payment = payments.find(
           (payment) =>
@@ -72,14 +61,8 @@ export class RegistrationsService {
           school:
             team?.school ?? '-',
 
-          members:
-            teamMembers.map(
-              (member) =>
-                member.fullName,
-            ),
-
-          totalMembers:
-            teamMembers.length,
+          whatsapp:
+            registration.whatsapp,
 
           paymentStatus:
             payment?.status ?? 'PENDING',
@@ -96,14 +79,15 @@ export class RegistrationsService {
 
   async createScienceRegistration(
     dto: CreateScienceRegistrationDto,
-    user: AuthUser,
   ) {
-    if (dto.participants.length === 0) {
+    if (
+      !dto.participants ||
+      dto.participants.length === 0
+    ) {
       throw new BadRequestException(
         'Minimal harus ada 1 peserta',
       );
     }
-
 
     if (
       dto.type === 'SELF' &&
@@ -114,13 +98,30 @@ export class RegistrationsService {
       );
     }
 
+    if (
+      dto.type === 'COLLECTIVE' &&
+      dto.participants.length > 11
+    ) {
+      throw new BadRequestException(
+        'Pendaftaran kolektif maksimal 11 peserta',
+      );
+    }
+
+    const whatsapp = dto.whatsapp.trim();
+
+    if (!whatsapp) {
+      throw new BadRequestException(
+        'Nomor WhatsApp wajib diisi',
+      );
+    }
+
     const school =
-      dto.participants[0].school;
+      dto.participants[0].school.trim();
 
     const sameSchool =
       dto.participants.every(
         (participant) =>
-          participant.school === school,
+          participant.school.trim() === school,
       );
 
     if (!sameSchool) {
@@ -152,7 +153,8 @@ export class RegistrationsService {
     const registration =
       await db.orm.public.Registration.create({
         type: dto.type,
-        userId: user.sub,
+        whatsapp,
+        source: 'ONLINE',
       });
 
     for (const participant of dto.participants) {
@@ -178,71 +180,41 @@ export class RegistrationsService {
       registrationId:
         registration.id,
 
-      userId:
-        user.sub,
-
       totalParticipants:
         dto.participants.length,
 
       school,
+      whatsapp,
+      source: 'ONLINE',
     };
   }
 
   async createFutsalRegistration(
     dto: CreateFutsalRegistrationDto,
-    user: AuthUser,
   ) {
-    if (dto.members.length === 0) {
+    const teamName = dto.teamName.trim();
+    const school = dto.school.trim();
+    const whatsapp = dto.whatsapp.trim();
+
+    if (!teamName || !school || !whatsapp) {
       throw new BadRequestException(
-        'Minimal harus ada 1 anggota tim',
-      );
-    }
-
-    const memberNames =
-      dto.members.map(
-        (member) =>
-          member.trim().toLowerCase(),
-      );
-
-    const uniqueMembers =
-      new Set(memberNames);
-
-    if (
-      uniqueMembers.size !==
-      dto.members.length
-    ) {
-      throw new BadRequestException(
-        'Nama anggota tidak boleh sama dalam satu tim',
+        'Nama tim, sekolah, dan WhatsApp wajib diisi',
       );
     }
 
     const registration =
       await db.orm.public.Registration.create({
         type: 'FUTSAL',
-        userId: user.sub,
+        whatsapp,
+        source: 'ONLINE',
       });
 
     const team =
       await db.orm.public.Team.create({
-        name:
-          dto.teamName.trim(),
-
-        school:
-          dto.school.trim(),
-
-        registrationId:
-          registration.id,
+        name: teamName,
+        school,
+        registrationId: registration.id,
       });
-
-    for (const member of dto.members) {
-      await db.orm.public.TeamMember.create({
-        fullName:
-          member.trim(),
-
-        teamId:
-          team.id,
-      });
-    }
 
     return {
       message:
@@ -251,17 +223,19 @@ export class RegistrationsService {
       registrationId:
         registration.id,
 
-      userId:
-        user.sub,
-
       teamId:
         team.id,
 
       teamName:
         team.name,
 
-      totalMembers:
-        dto.members.length,
+      school:
+        team.school,
+
+      whatsapp,
+
+      source:
+        'ONLINE',
     };
   }
 }
