@@ -1,12 +1,14 @@
-
 import {
   Body,
   Controller,
   Get,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 
 import { RegistrationsService } from './registrations.service.js';
+
+import { AdminGuard } from './admin.guard.js';
 
 import { CreateScienceRegistrationDto } from './dto/create-science-registration.dto.js';
 
@@ -18,11 +20,13 @@ export class RegistrationsController {
     private readonly registrationsService: RegistrationsService,
   ) {}
 
+  @UseGuards(AdminGuard)
   @Get()
   getRegistrations() {
     return this.registrationsService.getRegistrations();
   }
 
+  @UseGuards(AdminGuard)
   @Get('futsal')
   getFutsalRegistrations() {
     return this.registrationsService.getFutsalRegistrations();
