@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const ACCOUNT_NUMBER = "3846-01-045309-53-9";
