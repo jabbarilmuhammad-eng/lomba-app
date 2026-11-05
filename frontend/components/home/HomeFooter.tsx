@@ -82,26 +82,29 @@ export default function HomeFooter() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={`Buka ${social.name} ${social.username}`}
-                                    className="flex min-h-36 flex-col items-center justify-center gap-5 rounded-xl border border-[#b58b00] bg-black p-4 text-center transition hover:border-[#ffb206] hover:bg-[#211306] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffb206]"
+                                    className="flex h-48 flex-col items-center justify-start gap-4 overflow-hidden rounded-xl border border-[#b58b00] bg-black px-3 py-6 text-center transition hover:border-[#ffb206] hover:bg-[#211306] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffb206]"
                                 >
-                                    <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+                                    {/* ICON: kotak tetap, scale diberi overflow-hidden biar nggak keluar */}
+                                    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden">
                                         <Image
                                             src={social.icon}
                                             alt=""
-                                            width={48}
-                                            height={48}
-                                            className={`h-full w-full object-contain ${social.name === "Instagram"
-                                                ? "scale-[1.7]"
-                                                : social.name === "YouTube"
-                                                    ? "scale-100"
-                                                    : social.name === "TikTok"
-                                                        ? "scale-[2.8]"
-                                                        : ""
-                                                }`}
+                                            width={56}
+                                            height={56}
+                                            className={`h-full w-full object-contain ${
+                                                social.name === "Instagram"
+                                                    ? "scale-[1.7]"
+                                                    : social.name === "YouTube"
+                                                        ? "scale-100"
+                                                        : social.name === "TikTok"
+                                                            ? "scale-[2.8]"
+                                                            : ""
+                                            }`}
                                         />
                                     </span>
 
-                                    <span className="min-h-10 flex items-center justify-center break-words text-sm font-extrabold text-[#f4a62a]">
+                                    {/* USERNAME: tinggi tetap 2 baris, rata tengah, nggak keluar kotak */}
+                                    <span className="flex min-h-10 w-full items-center justify-center text-sm font-extrabold leading-tight text-[#f4a62a] [overflow-wrap:anywhere]">
                                         {social.username}
                                     </span>
                                 </a>
