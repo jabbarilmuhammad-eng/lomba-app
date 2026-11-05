@@ -16,7 +16,7 @@ const SCIENCE_FIELDS = ["MATEMATIKA", "IPA", "IPS"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 // ====== PENGATURAN BACKEND (ubah di sini kalau berbeda) ======
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 const REGISTRATION_ENDPOINT = "/registrations/science";
 // =============================================================
 

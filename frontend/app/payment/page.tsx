@@ -6,7 +6,7 @@ import { useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
 
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 

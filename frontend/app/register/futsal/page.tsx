@@ -7,7 +7,7 @@ import type { CSSProperties } from "react";
 type Step = 1 | 2 | 3;
 
 const REGISTRATION_FEE = 150000;
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 
 const steps = [
   { number: 1, label: "DATA TIM" },

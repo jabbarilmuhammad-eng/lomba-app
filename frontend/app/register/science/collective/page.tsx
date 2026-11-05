@@ -25,7 +25,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const SUBJECTS: Subject[] = ["Matematika", "IPS", "IPA"];
 
 // ====== PENGATURAN BACKEND ======
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 const REGISTRATION_ENDPOINT = "/registrations/science";
 
 // Nama bidang di form -> nilai enum ScienceField di backend
