@@ -8,7 +8,7 @@ import {
 
 import { RegistrationsService } from './registrations.service.js';
 
-import { AdminGuard } from './admin.guard.js';
+import { AdminApiGuard } from '../auth/guards/admin-api.guard.js';
 
 import { CreateScienceRegistrationDto } from './dto/create-science-registration.dto.js';
 
@@ -20,14 +20,14 @@ export class RegistrationsController {
     private readonly registrationsService: RegistrationsService,
   ) {}
 
-  @UseGuards(AdminGuard)
   @Get()
+  @UseGuards(AdminApiGuard)
   getRegistrations() {
     return this.registrationsService.getRegistrations();
   }
 
-  @UseGuards(AdminGuard)
   @Get('futsal')
+  @UseGuards(AdminApiGuard)
   getFutsalRegistrations() {
     return this.registrationsService.getFutsalRegistrations();
   }

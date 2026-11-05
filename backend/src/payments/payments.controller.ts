@@ -16,6 +16,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PaymentsService } from './payments.service.js';
 import { AdminApiGuard } from '../auth/guards/admin-api.guard.js';
 
+const ALLOWED_PROOF_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+];
+
 @Controller('payments')
 export class PaymentsController {
   constructor(
@@ -33,7 +40,7 @@ export class PaymentsController {
   @UseInterceptors(
     FileInterceptor('proof', {
       limits: {
-        fileSize: 5 * 1024 * 1024,
+        fileSize: 4 * 1024 * 1024,
       },
     }),
   )
@@ -44,6 +51,12 @@ export class PaymentsController {
     if (!file) {
       throw new BadRequestException(
         'Bukti pembayaran wajib diupload',
+      );
+    }
+
+    if (!ALLOWED_PROOF_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Bukti pembayaran harus berupa gambar (JPG, PNG, WEBP) atau PDF',
       );
     }
 
