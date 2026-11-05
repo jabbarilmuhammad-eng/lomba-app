@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-
-import { AuthModule } from '../auth/auth.module.js';
-
 import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
+import { GoogleSheetsModule } from '../google-sheets/google-sheets.module.js';
 
 @Module({
-  imports: [AuthModule],
+  imports: [GoogleSheetsModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
 })

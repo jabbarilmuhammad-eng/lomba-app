@@ -1,9 +1,10 @@
-
 import {
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 
@@ -40,6 +41,11 @@ export class CreateScienceRegistrationDto {
   @IsString()
   @IsNotEmpty()
   whatsapp: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  supervisorName?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'04c33b52e9895bc9fa1a66b6c2dac0836ba48fc33ddecb8e70384c3cc74f6aab'>;
+  StorageHashBase<'d2d125dfb2aa4232a81ee56b40a0647ac0a6fb0db0d898ad7069987ca6b7bd37'>;
 export type ExecutionHash =
   ExecutionHashBase<'083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805'>;
 export type ProfileHash =
@@ -265,6 +265,7 @@ export type FieldOutputTypes = {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly whatsapp: CodecTypes['pg/text@1']['output'];
+      readonly supervisorName: CodecTypes['pg/text@1']['output'] | null;
       readonly source: CodecTypes['pg/text@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -322,6 +323,7 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly whatsapp: CodecTypes['pg/text@1']['input'];
+      readonly supervisorName: CodecTypes['pg/text@1']['input'] | null;
       readonly source: CodecTypes['pg/text@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -379,6 +381,7 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly source: CodecTypes['pg/text@1']['output'];
+      readonly supervisorName: CodecTypes['pg/text@1']['output'] | null;
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'] | null;
@@ -436,6 +439,7 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly source: CodecTypes['pg/text@1']['input'];
+      readonly supervisorName: CodecTypes['pg/text@1']['input'] | null;
       readonly type: 'SELF' | 'COLLECTIVE' | 'FUTSAL';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'] | null;
@@ -671,6 +675,11 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                };
+                readonly supervisorName: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                 };
                 readonly source: {
                   readonly nativeType: 'text';
@@ -1098,6 +1107,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly supervisorName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly source: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -1168,6 +1181,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly type: { readonly column: 'type' };
                 readonly whatsapp: { readonly column: 'whatsapp' };
+                readonly supervisorName: { readonly column: 'supervisorName' };
                 readonly source: { readonly column: 'source' };
                 readonly userId: { readonly column: 'userId' };
                 readonly createdAt: { readonly column: 'createdAt' };

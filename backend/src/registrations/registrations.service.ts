@@ -1,4 +1,3 @@
-
 import {
   BadRequestException,
   Injectable,
@@ -115,6 +114,10 @@ export class RegistrationsService {
       );
     }
 
+    // Nama pembimbing (opsional di backend; wajib diisi lewat form frontend)
+    const supervisorName =
+      dto.supervisorName?.trim() || null;
+
     const school =
       dto.participants[0].school.trim();
 
@@ -154,6 +157,7 @@ export class RegistrationsService {
       await db.orm.public.Registration.create({
         type: dto.type,
         whatsapp,
+        supervisorName,
         source: 'ONLINE',
       });
 
@@ -185,6 +189,7 @@ export class RegistrationsService {
 
       school,
       whatsapp,
+      supervisorName,
       source: 'ONLINE',
     };
   }

@@ -20,6 +20,9 @@ const API_BASE_URL = "http://localhost:3001";
 const REGISTRATION_ENDPOINT = "/registrations/science";
 // =============================================================
 
+// Batas waktu request (milidetik). Naikkan kalau koneksi lambat.
+const REQUEST_TIMEOUT_MS = 30_000;
+
 const ACCOUNT_NUMBER = "3846-01-045309-53-9";
 const ACCOUNT_OWNER = "PANITIA ARMASO 2027 (Rafi Aziz)";
 
@@ -132,20 +135,14 @@ const panelStyle: CSSProperties = {
     boxShadow: "0 12px 40px rgba(0,0,0,.3)",
 };
 
-// fetch dengan batas waktu supaya tombol tidak "MENGIRIM..." selamanya
-const fetchWithTimeout = async (
+// fetch dengan batas waktu supaya tombol tidak "MENGIRIM..." selamanya.
+// AbortSignal.timeout otomatis membatalkan request dengan error "TimeoutError"
+// (tanpa setTimeout manual, jadi tidak memunculkan overlay "signal is aborted without reason").
+const fetchWithTimeout = (
     url: string,
     options: RequestInit,
-    ms = 15000
-) => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    try {
-        return await fetch(url, { ...options, signal: controller.signal });
-    } finally {
-        clearTimeout(timer);
-    }
-};
+    ms = REQUEST_TIMEOUT_MS
+) => fetch(url, { ...options, signal: AbortSignal.timeout(ms) });
 
 export default function IndividualRegistrationPage() {
     const router = useRouter();
@@ -303,11 +300,21 @@ export default function IndividualRegistrationPage() {
 
             router.push(`/payment?registrationId=${id}&success=true`);
         } catch (err) {
-            console.error(err);
+            // Timeout/abort sudah ditangani dengan pesan di layar, jadi tidak
+            // dikirim ke console.error supaya overlay error Next.js tidak muncul.
+            const isTimeout =
+                err instanceof DOMException &&
+                (err.name === "TimeoutError" || err.name === "AbortError");
 
-            if (err instanceof DOMException && err.name === "AbortError") {
+            if (!isTimeout) {
+                console.error(err);
+            }
+
+            if (isTimeout) {
                 setSubmitError(
-                    `Server tidak merespons saat ${stage} (lebih dari 15 detik). Cek apakah backend berjalan dan lihat terminal backend.`
+                    `Server tidak merespons saat ${stage} (lebih dari ${
+                        REQUEST_TIMEOUT_MS / 1000
+                    } detik). Cek koneksi internet dan pastikan backend berjalan di ${API_BASE_URL}.`
                 );
             } else if (err instanceof TypeError) {
                 setSubmitError(

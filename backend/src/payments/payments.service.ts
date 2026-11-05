@@ -3,11 +3,13 @@ import 'dotenv/config';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
 import { db } from '../prisma/db.js';
 import { v2 as cloudinary } from 'cloudinary';
+import { GoogleSheetsService } from '../google-sheets/google-sheets.service.js';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,6 +22,10 @@ const FUTSAL_PRICE = 150000;
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
+  constructor(private readonly sheets: GoogleSheetsService) {}
+
   // Daftar pembayaran untuk halaman verifikasi admin
   async getPayments() {
     const payments = await db.orm.public.Payment.all();
@@ -49,17 +55,12 @@ export class PaymentsService {
 
         type: registration?.type ?? '-',
         whatsapp: registration?.whatsapp ?? '-',
+        supervisorName: registration?.supervisorName ?? '-',
         source: registration?.source ?? '-',
 
-        name:
-          team?.name ??
-          firstParticipant?.fullName ??
-          '-',
+        name: team?.name ?? firstParticipant?.fullName ?? '-',
 
-        school:
-          team?.school ??
-          firstParticipant?.school ??
-          '-',
+        school: team?.school ?? firstParticipant?.school ?? '-',
 
         field: firstParticipant?.field ?? null,
 
@@ -97,10 +98,9 @@ export class PaymentsService {
       throw new BadRequestException('Nomor WhatsApp wajib diisi');
     }
 
-    const registrations =
-      await db.orm.public.Registration.where({
-        id: data.registrationId,
-      }).all();
+    const registrations = await db.orm.public.Registration.where({
+      id: data.registrationId,
+    }).all();
 
     const registration = registrations[0];
 
@@ -120,10 +120,9 @@ export class PaymentsService {
       );
     }
 
-    const existingPayments =
-      await db.orm.public.Payment.where({
-        registrationId: data.registrationId,
-      }).all();
+    const existingPayments = await db.orm.public.Payment.where({
+      registrationId: data.registrationId,
+    }).all();
 
     if (existingPayments.length > 0) {
       throw new BadRequestException(
@@ -149,60 +148,50 @@ export class PaymentsService {
     }
 
     if (data.file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException(
-        'Ukuran bukti pembayaran maksimal 5 MB',
-      );
+      throw new BadRequestException('Ukuran bukti pembayaran maksimal 5 MB');
     }
 
     let amount: number;
 
     if (registration.type === 'SELF' || registration.type === 'COLLECTIVE') {
-      const participants =
-        await db.orm.public.Participant.where({
-          registrationId: data.registrationId,
-        }).all();
+      const participants = await db.orm.public.Participant.where({
+        registrationId: data.registrationId,
+      }).all();
 
       const participantCount = participants.length;
 
       if (participantCount < 1 || participantCount > 11) {
-        throw new BadRequestException(
-          'Jumlah peserta pendaftaran tidak valid',
-        );
+        throw new BadRequestException('Jumlah peserta pendaftaran tidak valid');
       }
 
       const freeParticipants = Math.floor(participantCount / 11);
 
-      amount =
-        (participantCount - freeParticipants) * SCIENCE_PRICE;
+      amount = (participantCount - freeParticipants) * SCIENCE_PRICE;
     } else if (registration.type === 'FUTSAL') {
       amount = FUTSAL_PRICE;
     } else {
-      throw new BadRequestException(
-        'Jenis pendaftaran tidak valid',
-      );
+      throw new BadRequestException('Jenis pendaftaran tidak valid');
     }
 
-    const uploadResult = await new Promise<any>(
-      (resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'armaso/payment-proofs',
-            resource_type: 'image',
-          },
-          (error, result) => {
-            if (error) {
-              reject(error);
-            } else if (!result) {
-              reject(new Error('Upload bukti pembayaran gagal'));
-            } else {
-              resolve(result);
-            }
-          },
-        );
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'armaso/payment-proofs',
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else if (!result) {
+            reject(new Error('Upload bukti pembayaran gagal'));
+          } else {
+            resolve(result);
+          }
+        },
+      );
 
-        uploadStream.end(data.file.buffer);
-      },
-    );
+      uploadStream.end(data.file.buffer);
+    });
 
     const payment = await db.orm.public.Payment.create({
       amount,
@@ -224,9 +213,7 @@ export class PaymentsService {
   }
 
   async verifyPayment(id: number) {
-    const payments = await db.orm.public.Payment.where({
-      id,
-    }).all();
+    const payments = await db.orm.public.Payment.where({ id }).all();
 
     const payment = payments[0];
 
@@ -235,19 +222,19 @@ export class PaymentsService {
     }
 
     if (payment.status === 'VERIFIED') {
-      throw new BadRequestException(
-        'Pembayaran sudah diverifikasi',
-      );
+      throw new BadRequestException('Pembayaran sudah diverifikasi');
     }
 
-    const updatedPayment =
-      await db.orm.public.Payment.where({ id }).update({
-        status: 'VERIFIED',
-      });
+    const updatedPayment = await db.orm.public.Payment.where({ id }).update({
+      status: 'VERIFIED',
+    });
 
     if (!updatedPayment) {
       throw new NotFoundException('Pembayaran tidak ditemukan');
     }
+
+    // Tulis ke Google Sheets (error di sini tidak menggagalkan verifikasi)
+    await this.syncToSheet(updatedPayment);
 
     return {
       message: 'Pembayaran berhasil diverifikasi',
@@ -258,9 +245,7 @@ export class PaymentsService {
   }
 
   async rejectPayment(id: number) {
-    const payments = await db.orm.public.Payment.where({
-      id,
-    }).all();
+    const payments = await db.orm.public.Payment.where({ id }).all();
 
     const payment = payments[0];
 
@@ -269,15 +254,12 @@ export class PaymentsService {
     }
 
     if (payment.status === 'REJECTED') {
-      throw new BadRequestException(
-        'Pembayaran sudah ditolak',
-      );
+      throw new BadRequestException('Pembayaran sudah ditolak');
     }
 
-    const updatedPayment =
-      await db.orm.public.Payment.where({ id }).update({
-        status: 'REJECTED',
-      });
+    const updatedPayment = await db.orm.public.Payment.where({ id }).update({
+      status: 'REJECTED',
+    });
 
     if (!updatedPayment) {
       throw new NotFoundException('Pembayaran tidak ditemukan');
@@ -289,5 +271,102 @@ export class PaymentsService {
       registrationId: updatedPayment.registrationId,
       status: updatedPayment.status,
     };
+  }
+
+  private async syncToSheet(payment: {
+    id: number;
+    registrationId: number;
+    amount: number;
+  }) {
+    try {
+      const registration = (
+        await db.orm.public.Registration.where({
+          id: payment.registrationId,
+        }).all()
+      )[0];
+      if (!registration) return;
+
+      const participants = await db.orm.public.Participant.where({
+        registrationId: payment.registrationId,
+      }).all();
+
+      const team = (
+        await db.orm.public.Team.where({
+          registrationId: payment.registrationId,
+        }).all()
+      )[0];
+
+      const tanggal = registration.createdAt
+        ? new Date(registration.createdAt).toLocaleString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+          })
+        : '';
+
+      const fieldToTab: Record<string, string> = {
+        MATEMATIKA: 'Matematika',
+        IPA: 'IPA',
+        IPS: 'IPS',
+      };
+
+      // Urutan kolom HARUS sama dengan header di Google Sheets:
+      // NO | ID Pendaftaran | Nama | Sekolah | No WA | Bidang |
+      // Status Pembayaran | Nominal | Tanggal Daftar | ID Peserta
+      const base = (
+        idPeserta: number | string,
+        nama: string,
+        sekolah: string,
+        bidang: string,
+        nominal: number | '',
+      ): (string | number)[] => [
+        '=ROW()-1', // A: NO
+        payment.registrationId, // B: ID Pendaftaran
+        nama, // C: Nama
+        sekolah, // D: Sekolah
+        // E: No WA. Apostrof menjaga angka 0 di depan (butuh valueInputOption USER_ENTERED).
+        registration.whatsapp ? `'${registration.whatsapp}` : '',
+        bidang, // F: Bidang
+        'LUNAS', // G: Status Pembayaran
+        nominal, // H: Nominal
+        tanggal, // I: Tanggal Daftar
+        idPeserta, // J: ID Peserta
+      ];
+
+      if (registration.type === 'FUTSAL') {
+        const first = participants[0];
+        await this.sheets.appendRows('SPORT', [
+          base(
+            first?.id ?? '',
+            team?.name ?? first?.fullName ?? '-',
+            team?.school ?? first?.school ?? '-',
+            'Futsal',
+            payment.amount,
+          ),
+        ]);
+      } else if (registration.type === 'COLLECTIVE') {
+        const rows = participants.map((p, i) =>
+          base(
+            p.id,
+            p.fullName,
+            p.school ?? '',
+            p.field ?? '',
+            i === 0 ? payment.amount : '', // total hanya di baris pertama
+          ),
+        );
+        await this.sheets.appendRows('KOLEKTIF', rows);
+      } else {
+        // SELF: tab sesuai bidang peserta
+        const p = participants[0];
+        const tab = fieldToTab[p?.field ?? ''];
+        if (!p || !tab) {
+          this.logger.warn(`Bidang tidak dikenali: ${p?.field}`);
+          return;
+        }
+        await this.sheets.appendRows(tab, [
+          base(p.id, p.fullName, p.school ?? '', p.field ?? '', payment.amount),
+        ]);
+      }
+    } catch (err) {
+      this.logger.error('Gagal sinkron ke Google Sheets', err as Error);
+    }
   }
 }

@@ -363,6 +363,13 @@
                   "kind": "scalar"
                 }
               },
+              "supervisorName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "type": {
                 "nullable": false,
                 "type": {
@@ -470,6 +477,9 @@
                 },
                 "source": {
                   "column": "source"
+                },
+                "supervisorName": {
+                  "column": "supervisorName"
                 },
                 "type": {
                   "column": "type"
@@ -1058,6 +1068,11 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "supervisorName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "type": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -1381,7 +1396,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "04c33b52e9895bc9fa1a66b6c2dac0836ba48fc33ddecb8e70384c3cc74f6aab"
+    "storageHash": "d2d125dfb2aa4232a81ee56b40a0647ac0a6fb0db0d898ad7069987ca6b7bd37"
   },
   "execution": {
     "executionHash": "083c539e46f6fdd53b254676e97ce68683fa7b51fe88ed8f03d2c068514c1805",
