@@ -35,7 +35,7 @@ const FILL: Record<TimelineTrack, string> = {
   sport: "linear-gradient(90deg, #9a3300 0%, #ff6d00 100%)",
 };
 const TRACK_NAME: Record<TimelineTrack, string> = {
-  science: "Science",
+  science: "Olympiad",
   sport: "Sport",
 };
 
@@ -111,9 +111,8 @@ function DesktopItem({
 
   return (
     <div
-      className={`absolute transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none ${
-        shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-      }`}
+      className={`absolute transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        }`}
       style={{
         left: cq(x - ITEM_W / 2),
         top: cq(ROW_Y[row] - ITEM_H),
@@ -185,9 +184,8 @@ function MobileItem({
 }) {
   return (
     <li
-      className={`relative transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none ${
-        shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-      }`}
+      className={`relative transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none ${shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+        }`}
       style={{ transitionDelay: `${Math.min(index, 5) * 70}ms` }}
     >
       {/* Titik pada garis */}
