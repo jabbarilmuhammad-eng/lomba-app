@@ -579,7 +579,7 @@ export default function FutsalRegistrationPage() {
                 style={resourceButtonStyle}
                 onClick={() =>
                   window.open(
-                    "https://drive.google.com/file/d/1CCw9lNwLfiDpU9ItVvk72xeD3igkh3dj/view?usp=drive_link",
+                    "https://drive.google.com/file/d/1CCw9lNwLfiDpU9ItVvk72xeD3igkh3dj/view?usp=sharing",
                     "_blank",
                     "noopener,noreferrer"
                   )
@@ -593,7 +593,7 @@ export default function FutsalRegistrationPage() {
                 style={resourceButtonStyle}
                 onClick={() =>
                   window.open(
-                    "https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=drive_link",
+                    "https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=sharing",
                     "_blank",
                     "noopener,noreferrer"
                   )

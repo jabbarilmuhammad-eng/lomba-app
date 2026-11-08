@@ -444,7 +444,7 @@ export default function IndividualRegistrationPage() {
                     </strong>
 
                     <a
-                        href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=drive_link"
+                        href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=sharing"
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Guidebook"

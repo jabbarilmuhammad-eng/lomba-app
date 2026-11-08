@@ -10,6 +10,10 @@ const NAV_LINKS = [
   { label: "Home", href: "#beranda" },
   { label: "Olympiad", href: "/register/science" },
   { label: "Futsal Competition", href: "/register/futsal" },
+  {
+    label: "Guidebook",
+    href: "https://drive.google.com/drive/folders/1SjN6XUTx7_kUs45quplQlKT0ktV1xGjf?usp=sharing",
+  },
   { label: "About Us", href: "#about" },
   { label: "Contact", href: "#kontak" },
 ];
@@ -184,17 +188,23 @@ export default function HomeNavbar() {
                 }`}
               aria-label="Navigasi utama beranda"
             >
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.label}
-                  href={resolveHref(link.href)}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className={`font-poppins whitespace-nowrap font-bold text-white transition-colors duration-200 hover:text-[#eba037] ${scrolled ? "text-sm" : "text-sm lg:text-base"
-                    }`}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {NAV_LINKS.map((link) => {
+                const isGuidebook = link.label === "Guidebook";
+
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    target={isGuidebook ? "_blank" : undefined}
+                    rel={isGuidebook ? "noopener noreferrer" : undefined}
+                    className={`font-poppins whitespace-nowrap font-bold text-white transition-colors duration-200 hover:text-[#eba037] ${scrolled ? "text-sm" : "text-sm lg:text-base"
+                      }`}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </nav>
 
             {/* ─── Hamburger (Mobile) ─── */}
@@ -247,16 +257,22 @@ export default function HomeNavbar() {
                 className="flex flex-col"
                 aria-label="Navigasi mobile beranda"
               >
-                {NAV_LINKS.map((link) => (
-                  <a
-                    key={link.label}
-                    href={resolveHref(link.href)}
-                    onClick={(e) => handleNavClick(e, link.href)}
-                    className="font-poppins block border-b border-white/10 py-3 text-center text-base font-bold text-white transition-colors last:border-b-0 hover:text-[#eba037]"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {NAV_LINKS.map((link) => {
+                  const isGuidebook = link.label === "Guidebook";
+
+                  return (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      onClick={(e) => handleNavClick(e, link.href)}
+                      target={isGuidebook ? "_blank" : undefined}
+                      rel={isGuidebook ? "noopener noreferrer" : undefined}
+                      className="font-poppins block border-b border-white/10 py-3 text-center text-base font-bold text-white transition-colors last:border-b-0 hover:text-[#eba037]"
+                    >
+                      {link.label}
+                    </a>
+                  );
+                })}
               </nav>
             </div>
           </div>

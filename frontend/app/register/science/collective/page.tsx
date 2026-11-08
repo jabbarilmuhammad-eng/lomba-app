@@ -430,7 +430,7 @@ export default function KolektifRegistrationPage() {
               Pastikan data yang kamu isi sudah sesuai
             </strong>
             <a
-              href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=drive_link"
+              href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               title="Guidebook"
@@ -445,7 +445,7 @@ export default function KolektifRegistrationPage() {
             </a>
 
             <a
-              href="https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=sharing"
+              href="https://drive.google.com/file/d/1Tflq9U9gp-oV8W5cLw-aCiIpknxXmKPS/view?usp=drive_link"
               target="_blank"
               rel="noopener noreferrer"
               title="Twibbon"
