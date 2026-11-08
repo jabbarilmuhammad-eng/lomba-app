@@ -127,9 +127,8 @@ function Card({
 }) {
   return (
     <div
-      className={`flex flex-col items-center rounded-[31px] border-[3px] border-[#efbb52]/70 bg-[#1c0a00]/90 px-4 pb-8 pt-6 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none md:px-8 md:pb-10 md:pt-8 ${className} ${
-        shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-      }`}
+      className={`flex flex-col items-center rounded-[31px] border-[3px] border-[#efbb52]/70 bg-[#1c0a00]/90 px-4 pb-8 pt-6 transition-all duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none md:px-8 md:pb-10 md:pt-8 ${className} ${shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       <h2 className="font-poppins m-0 text-center text-[clamp(18px,1.63vw,25px)] font-bold leading-tight text-[#ffb206]">
@@ -156,7 +155,7 @@ export default function HomeCountdownQuota() {
         className="mx-auto flex w-full max-w-[1425px] flex-col gap-6 lg:min-h-[330px] lg:flex-row lg:gap-10"
       >
         {/* Science Countdown */}
-        <Card title="Science Countdown" className="lg:flex-[778]" shown={shown} delay={0}>
+        <Card title="Olympiad Countdown" className="lg:flex-[778]" shown={shown} delay={0}>
           <div role="timer" aria-label="Hitung mundur menuju Technical Meeting Science">
             <div className="flex items-start justify-center gap-[clamp(4px,1.1vw,16px)]">
               <Oval value={pad(countdown?.days)} label="Days" />
