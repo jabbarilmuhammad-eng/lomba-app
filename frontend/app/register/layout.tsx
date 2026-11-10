@@ -9,9 +9,9 @@ export default function RegisterLayout({
 }) {
   return (
     <>
-      <HomeNavbar />
+
       {children}
-      <HomeFooter />
+
     </>
   );
 }

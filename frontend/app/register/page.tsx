@@ -1,99 +1,285 @@
+
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function RegisterPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("Konfirmasi password tidak sesuai!");
+      return;
+    }
+
+    // Integrasi API registrasi menunggu kontrak backend.
+    alert("Formulir sudah siap. Integrasi pembuatan akun akan diaktifkan setelah API backend tersedia.");
+  };
+
   return (
-    <div className="register-page-wrapper" style={{ minHeight: '100vh', width: '100%', backgroundColor: '#0c0906', color: '#fbf5e6', padding: '120px 20px 60px 20px', boxSizing: 'border-box', fontFamily: 'Arial, sans-serif' }}>
+    <main className="relative flex min-h-screen overflow-hidden bg-[#1c0a00] text-white">
 
-      {/* Container Utama */}
-      <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+      {/* BACKGROUND DECORATION */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#ffb206]/[0.06] blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#ff6d00]/[0.06] blur-[120px]" />
 
-        {/* Header Title */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ display: 'inline-block', padding: '6px 16px', backgroundColor: '#16100b', border: '1px solid #d4af37', color: '#f6d066', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px' }}>
-            PORTAL PENDAFTARAN RESMI ARMASO 2027
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,178,6,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,178,6,0.5) 1px, transparent 1px)",
+            backgroundSize: "55px 55px",
+          }}
+        />
+      </div>
+
+      {/* LEFT PANEL */}
+      <section className="relative hidden min-h-screen w-1/2 flex-col justify-between border-r border-[#ffb206]/15 px-12 py-10 lg:flex xl:px-20">
+
+        <Link href="/" className="relative z-10 flex w-fit items-center gap-3">
+          <Image
+            src="/images/home/logo-armaso.png"
+            alt="Logo ARMASO 2027"
+            width={150}
+            height={60}
+            priority
+            className="h-auto w-[125px] object-contain"
+          />
+
+          <div className="h-9 w-px bg-[#ffb206]/40" />
+
+          <span className="font-poppins text-sm font-bold tracking-wider text-[#ffb206]">
+            ARMASO 2027
+          </span>
+        </Link>
+
+        <div className="relative z-10 max-w-xl">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="h-px w-12 bg-[#ffb206]" />
+            <span className="font-poppins text-xs font-semibold uppercase tracking-[0.35em] text-[#ffb206]">
+              Join ARMASO
+            </span>
           </div>
-          <h1 style={{ fontSize: '36px', fontWeight: '900', textTransform: 'uppercase', margin: '0 0 10px 0', color: '#ffffff' }}>
-            PILIH KATEGORI <span style={{ color: '#f6d066' }}>PENDAFTARAN LOMBA</span>
+
+          <h1 className="font-poppins text-5xl font-black leading-[1.15] xl:text-6xl">
+            Begin Your
+            <span className="mt-2 block text-[#ffb206]">
+              Journey.
+            </span>
           </h1>
-          <p style={{ color: '#e2d2b5', fontSize: '15px', maxWidth: '600px', margin: '0 auto' }}>
-            Tentukan jenis kompetisi yang ingin Anda ikuti. Ikuti olimpiade akademik bergengsi atau unjuk ketangkasan dalam turnamen futsal SD/MI se-Jawa Bali.
+
+          <p className="mt-7 max-w-md font-poppins text-sm leading-8 text-[#d8c2a8] xl:text-base">
+            Buat akun peserta ARMASO 2027 dan persiapkan dirimu untuk menjadi
+            bagian dari kompetisi akademik dan olahraga yang penuh prestasi.
+          </p>
+
+          <div className="mt-12 flex items-center gap-4">
+            <div className="h-[2px] w-16 bg-[#ffb206]" />
+            <div className="h-2 w-2 rotate-45 border border-[#ffb206]" />
+            <div className="h-px w-20 bg-[#ffb206]/30" />
+          </div>
+
+          <p className="mt-5 font-poppins text-xs uppercase tracking-[0.25em] text-[#a98a6a]">
+            Classic & Majestic Egyptian Theme
           </p>
         </div>
 
-        {/* Grid 2 Kartu */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
+        <div className="relative z-10 flex items-center justify-between">
+          <p className="font-poppins text-xs text-[#a98a6a]">
+            © 2027 ARMASO
+          </p>
 
-          {/* KARTU 1: OLIMPIADE */}
-          <div style={{ backgroundColor: '#16100b', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '24px', padding: '30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-            <div>
-              {/* Header Badge Dalam Card (Dijamin Tidak Keluar) */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <span style={{ backgroundColor: '#23180f', border: '1px solid #d4af37', color: '#f6d066', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
-                  Bidang Akademik
-                </span>
-                <span style={{ color: '#e2d2b5', fontSize: '12px', opacity: 0.8 }}>
-                  SD/MI Se-Jawa Bali
-                </span>
-              </div>
-
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', margin: '0 0 10px 0' }}>
-                Olimpiade Sains
-              </h2>
-              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f6d066', marginBottom: '15px' }}>
-                Biaya: Rp 35.000 / Peserta
-              </div>
-              <p style={{ fontSize: '14px', color: '#e2d2b5', lineHeight: '1.5', margin: '0 0 20px 0', opacity: 0.9 }}>
-                Kompetisi akademik sains dan penalaran bergengsi untuk cabang Matematika, IPA (Science), dan IPS (Social) dengan standar soal HOTS.
-              </p>
-            </div>
-
-            <div>
-              <Link
-                href="/register/olimpiade"
-                style={{ display: 'block', textAlign: 'center', padding: '14px', backgroundColor: '#d4af37', color: '#120c06', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none', fontSize: '14px' }}
-              >
-                Pilih Jalur Pendaftaran →
-              </Link>
-            </div>
-          </div>
-
-          {/* KARTU 2: FUTSAL */}
-          <div style={{ backgroundColor: '#16100b', border: '1px solid rgba(212, 175, 55, 0.4)', borderRadius: '24px', padding: '30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-            <div>
-              {/* Header Badge Dalam Card (Dijamin Tidak Keluar) */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <span style={{ backgroundColor: '#23180f', border: '1px solid #d4af37', color: '#f6d066', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
-                  Turnamen Olahraga
-                </span>
-                <span style={{ color: '#e2d2b5', fontSize: '12px', opacity: 0.8 }}>
-                  1 Tim Sekolah
-                </span>
-              </div>
-
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', margin: '0 0 10px 0' }}>
-                Kompetisi Futsal
-              </h2>
-              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f6d066', marginBottom: '15px' }}>
-                Biaya: Rp 150.000 / Tim
-              </div>
-              <p style={{ fontSize: '14px', color: '#e2d2b5', lineHeight: '1.5', margin: '0 0 20px 0', opacity: 0.9 }}>
-                Turnamen futsal bergengsi tingkat SD/MI se-Jawa Bali. Daftarkan skuad tim sekolah Anda untuk bertanding memperebutkan Trophy Bergilir.
-              </p>
-            </div>
-
-            <div>
-              <Link
-                href="/register/futsal"
-                style={{ display: 'block', textAlign: 'center', padding: '14px', backgroundColor: '#d4af37', color: '#120c06', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none', fontSize: '14px' }}
-              >
-                Daftar Tim Futsal →
-              </Link>
-            </div>
-          </div>
-
+          <p className="font-poppins text-xs tracking-widest text-[#a98a6a]">
+            AR-RAHMAT
+          </p>
         </div>
 
-      </div>
-    </div>
+        <div className="pointer-events-none absolute bottom-24 right-16 h-32 w-32 rotate-45 border border-[#ffb206]/10" />
+        <div className="pointer-events-none absolute bottom-32 right-24 h-16 w-16 rotate-45 border border-[#ffb206]/10" />
+      </section>
+
+      {/* RIGHT PANEL */}
+      <section className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-10 lg:w-1/2 lg:px-12">
+
+        {/* MOBILE BRANDING */}
+        <div className="mb-8 flex flex-col items-center lg:hidden">
+          <Link href="/">
+            <Image
+              src="/images/home/logo-armaso.png"
+              alt="Logo ARMASO 2027"
+              width={180}
+              height={72}
+              priority
+              className="h-auto w-[150px] object-contain"
+            />
+          </Link>
+
+          <p className="mt-3 font-poppins text-xs font-semibold uppercase tracking-[0.3em] text-[#ffb206]">
+            ARMASO 2027
+          </p>
+        </div>
+
+        <div className="w-full max-w-md">
+
+          {/* FORM HEADING */}
+          <div className="mb-8">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="h-px w-8 bg-[#ffb206]" />
+              <span className="font-poppins text-xs font-semibold uppercase tracking-[0.3em] text-[#ffb206]">
+                Participant Registration
+              </span>
+            </div>
+
+            <h2 className="font-poppins text-3xl font-black tracking-tight sm:text-4xl">
+              Create <span className="text-[#ffb206]">Account.</span>
+            </h2>
+
+            <p className="mt-3 font-poppins text-sm leading-7 text-[#bda58c]">
+              Buat akun peserta untuk memulai perjalananmu di ARMASO 2027.
+            </p>
+          </div>
+
+          {/* REGISTER FORM */}
+          <form onSubmit={handleRegister} className="space-y-5">
+
+            {/* FULL NAME */}
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-2 block font-poppins text-sm font-semibold text-[#f3dfc5]"
+              >
+                Nama Lengkap
+              </label>
+
+              <input
+                id="name"
+                type="text"
+                placeholder="Masukkan nama lengkap"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoComplete="name"
+                className="w-full rounded-xl border border-[#ffb206]/20 bg-[#2b1205] px-5 py-3.5 font-poppins text-sm text-white outline-none transition placeholder:text-[#8e735a] hover:border-[#ffb206]/40 focus:border-[#ffb206] focus:ring-2 focus:ring-[#ffb206]/10"
+              />
+            </div>
+
+            {/* EMAIL */}
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-2 block font-poppins text-sm font-semibold text-[#f3dfc5]"
+              >
+                Email
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="nama@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="w-full rounded-xl border border-[#ffb206]/20 bg-[#2b1205] px-5 py-3.5 font-poppins text-sm text-white outline-none transition placeholder:text-[#8e735a] hover:border-[#ffb206]/40 focus:border-[#ffb206] focus:ring-2 focus:ring-[#ffb206]/10"
+              />
+            </div>
+
+            {/* PASSWORD */}
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block font-poppins text-sm font-semibold text-[#f3dfc5]"
+              >
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                placeholder="Buat password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-xl border border-[#ffb206]/20 bg-[#2b1205] px-5 py-3.5 font-poppins text-sm text-white outline-none transition placeholder:text-[#8e735a] hover:border-[#ffb206]/40 focus:border-[#ffb206] focus:ring-2 focus:ring-[#ffb206]/10"
+              />
+
+              <p className="mt-2 font-poppins text-[10px] text-[#9e8062]">
+                Minimal 8 karakter.
+              </p>
+            </div>
+
+            {/* CONFIRM PASSWORD */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block font-poppins text-sm font-semibold text-[#f3dfc5]"
+              >
+                Konfirmasi Password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Ulangi password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-xl border border-[#ffb206]/20 bg-[#2b1205] px-5 py-3.5 font-poppins text-sm text-white outline-none transition placeholder:text-[#8e735a] hover:border-[#ffb206]/40 focus:border-[#ffb206] focus:ring-2 focus:ring-[#ffb206]/10"
+              />
+            </div>
+
+            {/* REGISTER BUTTON */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full overflow-hidden rounded-xl bg-[#ffb206] px-6 py-4 font-poppins text-sm font-black uppercase tracking-[0.15em] text-[#1c0a00] transition duration-300 hover:-translate-y-1 hover:bg-[#ffc43d] hover:shadow-[0_8px_30px_rgba(255,178,6,0.2)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Buat Akun
+            </button>
+          </form>
+
+          {/* LOGIN LINK */}
+          <div className="mt-7 border-t border-[#ffb206]/15 pt-6 text-center">
+            <p className="font-poppins text-sm text-[#bda58c]">
+              Sudah memiliki akun?
+              <Link
+                href="/login"
+                className="ml-2 font-bold text-[#ffb206] transition hover:text-[#ffd16b] hover:underline"
+              >
+                Login
+              </Link>
+            </p>
+          </div>
+
+          {/* BACK TO HOME */}
+          <div className="mt-6 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 font-poppins text-xs font-medium text-[#9e8062] transition hover:text-[#ffb206]"
+            >
+              <span aria-hidden="true">←</span>
+              Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-10 font-poppins text-[10px] tracking-widest text-[#80664e] lg:hidden">
+          © 2027 ARMASO
+        </p>
+      </section>
+    </main>
   );
 }
