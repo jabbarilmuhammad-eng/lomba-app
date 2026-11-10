@@ -14,9 +14,10 @@ const NAV_LINKS = [
     label: "Guidebook",
     href: "https://drive.google.com/drive/folders/1SjN6XUTx7_kUs45quplQlKT0ktV1xGjf?usp=sharing",
   },
-  { label: "About Us", href: "#about" },
   { label: "Contact", href: "#kontak" },
+  { label: "Login", href: "/login" },
 ];
+
 
 /* ───────── Pengaturan efek "dynamic island" (ubah di sini) ───────── */
 const SCROLL_THRESHOLD = 40; // px scroll sebelum navbar berubah jadi pulau melayang
@@ -188,8 +189,10 @@ export default function HomeNavbar() {
                 }`}
               aria-label="Navigasi utama beranda"
             >
+
               {NAV_LINKS.map((link) => {
                 const isGuidebook = link.label === "Guidebook";
+                const isLogin = link.label === "Login";
 
                 return (
                   <a
@@ -198,13 +201,23 @@ export default function HomeNavbar() {
                     onClick={(e) => handleNavClick(e, link.href)}
                     target={isGuidebook ? "_blank" : undefined}
                     rel={isGuidebook ? "noopener noreferrer" : undefined}
-                    className={`font-poppins whitespace-nowrap font-bold text-white transition-colors duration-200 hover:text-[#eba037] ${scrolled ? "text-sm" : "text-sm lg:text-base"
-                      }`}
+                    className={`
+                     font-poppins whitespace-nowrap font-bold
+                     transition-all duration-300
+                     ${isLogin
+                        ? scrolled
+                          ? "rounded-lg px-0 py-0 text-white hover:text-[#eba037]"
+                          : "rounded-lg bg-[#ffb206] px-5 py-2.5 text-[#1c0a00] hover:bg-[#e99d00] hover:text-[#1c0a00]"
+                        : "text-white hover:text-[#eba037]"
+                      }
+        ${scrolled ? "text-sm" : "text-sm lg:text-base"}
+      `}
                   >
                     {link.label}
                   </a>
                 );
               })}
+
             </nav>
 
             {/* ─── Hamburger (Mobile) ─── */}
