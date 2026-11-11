@@ -96,33 +96,13 @@ export default function DashboardPage() {
       <main className="p-6 sm:p-10 md:ml-40">
         <div className="mx-auto max-w-3xl">
           <div className="flex justify-end">
-            <button
-              onClick={load}
-              disabled={loading}
-              className="rounded bg-amber-400 px-3 py-1.5 text-xs font-bold text-[#1a0a02] hover:bg-amber-300 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              Perbarui data
-            </button>
+
           </div>
 
-          {loading && <Skeleton />}
-
-          {error && (
-            <div className="mt-6 rounded-xl border-2 border-red-400/60 bg-red-500/10 p-4">
-              <p className="font-bold text-red-300">Data belum bisa dimuat</p>
-              <p className="mt-1 text-sm text-white/70">{error}</p>
-              <button
-                onClick={load}
-                className="mt-3 rounded border border-white/40 px-3 py-1.5 text-sm hover:bg-white/10"
-              >
-                Coba lagi
-              </button>
-            </div>
-          )}
 
           {data && !loading && (
             <>
-              <p className="mt-2 text-sm font-semibold">Selamat datang di Beranda</p>
+              <p className="mt-2 text-sm font-semibold">Selamat datang di dashboard</p>
               <h1 className="mt-1 text-5xl font-bold text-amber-400">
                 Halo, {firstName}!
               </h1>

@@ -4,4 +4,4 @@
  * Format ISO dengan zona waktu, jadi hasilnya benar di zona waktu pengunjung mana pun.
  * Ganti hanya string di bawah ini jika targetnya berubah.
  */
-export const SCIENCE_COUNTDOWN_TARGET = "2027-01-10T00:00:00+07:00";
+export const SCIENCE_COUNTDOWN_TARGET = "2027-01-03T00:00:00+07:00";
