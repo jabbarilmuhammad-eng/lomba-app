@@ -8,6 +8,8 @@ import type {
     CSSProperties,
     FormEvent,
 } from "react";
+import HomeNavbar from "@/components/home/HomeNavbar";
+import HomeFooter from "@/components/home/HomeFooter";
 
 type Step = 1 | 2 | 3;
 
@@ -333,6 +335,7 @@ export default function IndividualRegistrationPage() {
     };
 
     return (
+        
         <main
             className="relative z-0"
             style={{
@@ -444,7 +447,7 @@ export default function IndividualRegistrationPage() {
                     </strong>
 
                     <a
-                        href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=sharing"
+                        href="https://drive.google.com/file/d/1cxJI8nhiXqghEnz0aob28ZAhwfbAI6sy/view?usp=sharing"
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Guidebook"
@@ -1169,7 +1172,7 @@ export default function IndividualRegistrationPage() {
                     >
                         Data pendaftaran dan bukti transfer akan diverifikasi oleh
                         panitia pelaksana ARMASO 2027.
-                    </footer>
+                    </  footer>
                 </section>
             </div>
         </main>

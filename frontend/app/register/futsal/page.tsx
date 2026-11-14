@@ -579,7 +579,7 @@ export default function FutsalRegistrationPage() {
                 style={resourceButtonStyle}
                 onClick={() =>
                   window.open(
-                    "https://drive.google.com/file/d/1CCw9lNwLfiDpU9ItVvk72xeD3igkh3dj/view?usp=sharing",
+                    "https://drive.google.com/file/d/1ak5a_z0Bbozx4EOXof1AySoGwrUASQrb/view?usp=sharing",
                     "_blank",
                     "noopener,noreferrer"
                   )

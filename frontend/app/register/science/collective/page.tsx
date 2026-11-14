@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Fragment, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
-import HomeNavbar from "@/components/home/HomeNavbar";
-import HomeFooter from "@/components/home/HomeFooter";
+
 
 
 type Step = 1 | 2 | 3 | 4;
@@ -345,8 +344,7 @@ export default function KolektifRegistrationPage() {
   };
 
   return (
-    <>
-      <HomeNavbar />
+    
       <main className="relative z-0 -mt-[clamp(64px,5vw,80px)]" style={{ paddingTop: "32px" }}>
         <Image
           src="/images/home/bg-form-olim-kolektif.png"
@@ -430,7 +428,7 @@ export default function KolektifRegistrationPage() {
               Pastikan data yang kamu isi sudah sesuai
             </strong>
             <a
-              href="https://drive.google.com/file/d/1l46a6rSyUPGYH3w8aYpOgEk4s02KutG0/view?usp=sharing"
+              href="https://drive.google.com/file/d/1cxJI8nhiXqghEnz0aob28ZAhwfbAI6sy/view?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               title="Guidebook"
@@ -778,6 +776,6 @@ export default function KolektifRegistrationPage() {
         </div>
       </main>
 
-    </>
+    
   );
 }
